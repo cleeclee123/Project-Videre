@@ -24,3 +24,11 @@ export const crawl = async (url: string) => {
 };
 
 crawl("https://en.wikipedia.org/wiki/Orlando,_Florida");
+
+/*
+// TODO: 
+  - Adjacency List vs Adjacency Matrix
+  - Storage and Travsersal
+  - Analysis
+  - 
+*/
