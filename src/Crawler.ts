@@ -1,15 +1,19 @@
-import axios, { AxiosResponse, AxiosError, AxiosHeaders } from "axios";
+import axios from "axios";
 import { load } from "cheerio";
 
-// interface IUrl {
-//   link: string;
-// }
+const seen: any = {};
 
-// type PageResponse = {
-//   data: IUrl[];
-// }
+export const getURL = (link: any) => {
+  if (link.includes("http")) {
+    return link;
+  }
+}
 
-export const crawl = async (url: string) => {
+export const crawl = async ({url}: any) => {
+  if (seen[url]) {
+    return;
+  }
+  seen[url] = true;
   await axios.get(url).then(async (response) => {
     // load function from cheerio
     const $ = load(response.data);
@@ -17,18 +21,10 @@ export const crawl = async (url: string) => {
     // grabbing all links that cheerio sees
     const links = $("a")
       .map((i, e) => e.attribs.href)
-      .get();
-
-    console.log(links);
+      .get().forEach((link) => {
+        console.log(link);
+      });
   });
 };
 
-crawl("https://en.wikipedia.org/wiki/Orlando,_Florida");
-
-/*
-// TODO: 
-  - Adjacency List vs Adjacency Matrix
-  - Storage and Travsersal
-  - Analysis
-  - 
-*/
+crawl({url: "https://en.wikipedia.org/wiki/Orlando,_Florida"});
