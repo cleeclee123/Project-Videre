@@ -112,6 +112,11 @@ export const scrapeProxies = async () => {
   return proxies;
 };
 
+
+
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent/Firefox
+
 enum Product {
   edgeWin = "edge_win",
   edgeMac = "edge_mac",
