@@ -1,1 +1,3 @@
-console.log("hello world");
+import { generateProxy } from "./spoofer";
+
+console.log(generateProxy());
