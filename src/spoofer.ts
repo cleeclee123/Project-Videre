@@ -116,6 +116,7 @@ export const scrapeProxies = async () => {
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent/Firefox
+// https://github.com/tarampampam/random-user-agent/blob/master/src/useragent/generator.ts
 
 enum Product {
   edgeWin = "edge_win",
