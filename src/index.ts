@@ -1,3 +1,5 @@
 import { generateProxy } from "./spoofer";
 
-console.log(generateProxy());
+generateProxy().then((data) => {
+  console.log(data);
+});
