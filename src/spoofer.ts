@@ -10,7 +10,7 @@
 
 import axios from "axios";
 import { load } from "cheerio";
-import { resourceLimits } from "worker_threads";
+import { next } from "cheerio/lib/api/traversing";
 
 interface IProxy {
   domain?: string;
@@ -19,7 +19,9 @@ interface IProxy {
   portNumbers: string[];
   codes: string[];
   countries: string[];
-  anomymity: string[];
+  versions: string[];
+  googleStatus: string[];
+  anomymities: string[];
   https: boolean[];
   statusDuringScrape: string[];
 }
@@ -35,6 +37,7 @@ export const generateProxy = async () => {
     "https://free-proxy-list.net/anonymous-proxy.html",
   ];
 
+  // not inclusive
   let linkIndex: number = Math.floor(Math.random() * 6);
   let proxy = {} as IProxy;
   proxy.domain = links[linkIndex].substring(links[linkIndex].indexOf("www."));
@@ -47,7 +50,6 @@ export const generateProxy = async () => {
       const $ = load(response.data);
 
       const keys: string[] = [];
-      const results: any = [];
       $("table.table-striped.table-bordered")
         .find("tr")
         .each((row, elem) => {
@@ -55,25 +57,63 @@ export const generateProxy = async () => {
             $(elem)
               .find("th")
               .each((idx, elem) => {
-                const key = $(elem).text().trim();
+                const key = $(elem).text().trim().toLowerCase();
                 keys.push(key);
               });
           } else {
-            const nextProxy = new Map<string, string>();
+            let ipAddresses: string[] = [];
+            let portNumbers: string[] = [];
+            let codes: string[] = [];
+            let countries: string[] = [];
+            let versions: string[] = [];
+            let google: string[] = [];
+            let anomymities: string[] = [];
+            let https: boolean[] = [];
+            let statusDuringScrape: string[] = [];
             $(elem)
               .find("td,th")
               .each((idx, elem) => {
-                const value = $(elem).text().trim();
+                const value = $(elem).text().trim().toLowerCase();
                 const key = keys[idx];
 
-                console.log({"key": key, "value": value});
-                
-                nextProxy.set(key, value);
+                if (key === "ip address") {
+                  ipAddresses.push(value);
+                } else if (key === "port") {
+                  portNumbers.push(value);
+                } else if (key === "code") {
+                  codes.push(value);
+                } else if (key === "country") {
+                  countries.push(value);
+                } else if (key === "version") {
+                  versions.push(value);
+                } else if (key === "anonymity") {
+                  anomymities.push(value);
+                } else if (key === "google") {
+                  google.push(value);
+                } else if (key === "https") {
+                  if (value === "yes") {
+                    https.push(true);
+                  } else {
+                    https.push(false);
+                  }
+                } else if (key === "last checked") {
+                  statusDuringScrape.push(value);
+                }
               });
-            results.push(nextProxy);
-          }
+              proxy.ipAddresses = ipAddresses;
+              proxy.portNumbers = portNumbers;
+              proxy.codes = codes;
+              proxy.countries = countries;
+              proxy.versions = versions;
+              proxy.googleStatus = google;
+              proxy.anomymities = anomymities;
+              proxy.https = https;
+              proxy.statusDuringScrape = statusDuringScrape;
+
+              console.log(proxy);
+            }
         });
-    })
+      })
     .catch(async function (error) {
       return `${ERROR_MESSAGE} ${error}`;
     });
