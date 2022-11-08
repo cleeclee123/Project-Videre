@@ -12,7 +12,7 @@ import axios from "axios";
 import { load } from "cheerio";
 import { next } from "cheerio/lib/api/traversing";
 
-interface IProxy {
+type Proxy = {
   domain?: string;
   link?: string;
   ipAddresses: string[];
@@ -39,7 +39,7 @@ export const generateProxy = async () => {
 
   // not inclusive
   let linkIndex: number = Math.floor(Math.random() * 6);
-  let proxy = {} as IProxy;
+  let proxy = {} as Proxy;
   proxy.domain = links[linkIndex].substring(links[linkIndex].indexOf("www."));
   proxy.link = links[linkIndex];
 
