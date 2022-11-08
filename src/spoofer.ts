@@ -11,6 +11,10 @@
 import axios from "axios";
 import { load } from "cheerio";
 
+/**
+ * type Proxy
+ * data members are from sslproxies.org tables
+ */
 type Proxy = {
   domain?: string;
   link?: string;
@@ -23,8 +27,13 @@ type Proxy = {
   anomymities: string;
   https: boolean;
   statusDuringScrape: string;
-}
-
+};
+/**
+ * scrapes random table of proxies from sslproxies.org
+ * @todo: redesign - not to be random table
+ *
+ * @returns array of Proxy objects
+ */
 export const scrapeProxies = async () => {
   const ERROR_MESSAGE = "Error with Proxy Generator";
   const links = [
@@ -65,7 +74,9 @@ export const scrapeProxies = async () => {
                 const value = $(elem).text().trim().toLowerCase();
                 const key = keys[idx];
 
-                currentProxy.domain = links[linkIndex].substring(links[linkIndex].indexOf("www."));
+                currentProxy.domain = links[linkIndex].substring(
+                  links[linkIndex].indexOf("www.")
+                );
                 currentProxy.link = links[linkIndex];
 
                 if (key === "ip address") {
@@ -83,20 +94,44 @@ export const scrapeProxies = async () => {
                 } else if (key === "google") {
                   currentProxy.googleStatus = value;
                 } else if (key === "https") {
-                  value === "yes" ? currentProxy.https = true : currentProxy.https = false;
+                  value === "yes"
+                    ? (currentProxy.https = true)
+                    : (currentProxy.https = false);
                 } else if (key === "last checked") {
                   currentProxy.statusDuringScrape = value;
                 }
               });
-              proxies.push(currentProxy);
-            }
+            proxies.push(currentProxy);
+          }
         });
-      })
+    })
     .catch(async function (error) {
       return `${ERROR_MESSAGE} ${error}`;
     });
 
-    return proxies;
+  return proxies;
+};
+
+enum Product {
+  edgeWin = "edge_win",
+  edgeMac = "edge_mac",
+  chromeWin = "chrome_win",
+  chromeMac = "chrome_mac",
+  chromeLinux = "chrome_linux",
+  chromeAndroid = "chrome_android",
+  firefoxWin = "firefox_win",
+  firefoxMac = "firefox_mac",
+  firefoxLinux = "firefox_linux",
+  firefoxAndroid = "firefox_android",
+  operaWin = "opera_win",
+  operaMac = "opera_mac",
+  safariIphone = "safari_iphone",
+  safariMac = "safari_mac",
+}
+
+type UserAgent = {
+  userAgent: string;
+  broswer: string;
 };
 
 const scrapeUserAgents = async () => {};
