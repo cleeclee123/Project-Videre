@@ -1,5 +1,5 @@
-import { generateProxy } from "./spoofer";
+import { scrapeProxies } from "./spoofer";
 
-generateProxy().then((data) => {
+scrapeProxies().then((data) => {
   console.log(data);
 });

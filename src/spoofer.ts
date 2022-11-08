@@ -10,23 +10,22 @@
 
 import axios from "axios";
 import { load } from "cheerio";
-import { next } from "cheerio/lib/api/traversing";
 
 type Proxy = {
   domain?: string;
   link?: string;
-  ipAddresses: string[];
-  portNumbers: string[];
-  codes: string[];
-  countries: string[];
-  versions: string[];
-  googleStatus: string[];
-  anomymities: string[];
-  https: boolean[];
-  statusDuringScrape: string[];
+  ipAddresses: string;
+  portNumbers: string;
+  codes: string;
+  countries: string;
+  versions: string;
+  googleStatus: string;
+  anomymities: string;
+  https: boolean;
+  statusDuringScrape: string;
 }
 
-export const generateProxy = async () => {
+export const scrapeProxies = async () => {
   const ERROR_MESSAGE = "Error with Proxy Generator";
   const links = [
     "https://www.sslproxies.org/",
@@ -39,9 +38,7 @@ export const generateProxy = async () => {
 
   // not inclusive
   let linkIndex: number = Math.floor(Math.random() * 6);
-  let proxy = {} as Proxy;
-  proxy.domain = links[linkIndex].substring(links[linkIndex].indexOf("www."));
-  proxy.link = links[linkIndex];
+  let proxies: Proxy[] = [];
 
   await axios
     .get(links[linkIndex])
@@ -61,65 +58,48 @@ export const generateProxy = async () => {
                 keys.push(key);
               });
           } else {
-            let ipAddresses: string[] = [];
-            let portNumbers: string[] = [];
-            let codes: string[] = [];
-            let countries: string[] = [];
-            let versions: string[] = [];
-            let google: string[] = [];
-            let anomymities: string[] = [];
-            let https: boolean[] = [];
-            let statusDuringScrape: string[] = [];
+            let currentProxy = {} as Proxy;
             $(elem)
               .find("td,th")
               .each((idx, elem) => {
                 const value = $(elem).text().trim().toLowerCase();
                 const key = keys[idx];
 
+                currentProxy.domain = links[linkIndex].substring(links[linkIndex].indexOf("www."));
+                currentProxy.link = links[linkIndex];
+
                 if (key === "ip address") {
-                  ipAddresses.push(value);
+                  currentProxy.ipAddresses = value;
                 } else if (key === "port") {
-                  portNumbers.push(value);
+                  currentProxy.portNumbers = value;
                 } else if (key === "code") {
-                  codes.push(value);
+                  currentProxy.codes = value;
                 } else if (key === "country") {
-                  countries.push(value);
+                  currentProxy.countries = value;
                 } else if (key === "version") {
-                  versions.push(value);
+                  currentProxy.versions = value;
                 } else if (key === "anonymity") {
-                  anomymities.push(value);
+                  currentProxy.anomymities = value;
                 } else if (key === "google") {
-                  google.push(value);
+                  currentProxy.googleStatus = value;
                 } else if (key === "https") {
-                  if (value === "yes") {
-                    https.push(true);
-                  } else {
-                    https.push(false);
-                  }
+                  value === "yes" ? currentProxy.https = true : currentProxy.https = false;
                 } else if (key === "last checked") {
-                  statusDuringScrape.push(value);
+                  currentProxy.statusDuringScrape = value;
                 }
               });
-              proxy.ipAddresses = ipAddresses;
-              proxy.portNumbers = portNumbers;
-              proxy.codes = codes;
-              proxy.countries = countries;
-              proxy.versions = versions;
-              proxy.googleStatus = google;
-              proxy.anomymities = anomymities;
-              proxy.https = https;
-              proxy.statusDuringScrape = statusDuringScrape;
-
-              console.log(proxy);
+              proxies.push(currentProxy);
             }
         });
       })
     .catch(async function (error) {
       return `${ERROR_MESSAGE} ${error}`;
     });
+
+    return proxies;
 };
 
-const rotateUserAgent = async () => {};
+const scrapeUserAgents = async () => {};
 
 const callbackHelper = async () => {};
 
