@@ -1,4 +1,4 @@
-import { scrapeProxies } from "./spoofer";
+import { scrapeProxies } from "./Spoofer/spoofer";
 
 scrapeProxies().then((data) => {
   console.log(data);

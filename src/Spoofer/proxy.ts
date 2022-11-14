@@ -1,13 +1,3 @@
-/**
- * spoofer.ts
- * @version 1.0.0
- * @author Chris Lee <cl114@illinois.edu>
- *
- * most of code is from my "Spiteful Spoofer" project, refactored with TypeScript and additonal features
- * more information about what im trying to do here: https://en.wikipedia.org/wiki/Referer_spoofing
- * references (and the references listed): https://github.com/JoshuaProvoste/IP-Spoofing-Headers
- */
-
 import axios from "axios";
 import { load } from "cheerio";
 
@@ -51,7 +41,7 @@ export const scrapeProxies = async () => {
 
   await axios
     .get(links[linkIndex])
-    .then(async function (response) {
+    .then(async (response) => {
       // load html data with cheerio
       const $ = load(response.data);
 
@@ -105,43 +95,8 @@ export const scrapeProxies = async () => {
           }
         });
     })
-    .catch(async function (error) {
+    .catch(async (error) => {
       return `${ERROR_MESSAGE} ${error}`;
     });
-
   return proxies;
 };
-
-
-
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent/Firefox
-// https://github.com/tarampampam/random-user-agent/blob/master/src/useragent/generator.ts
-
-enum Product {
-  edgeWin = "edge_win",
-  edgeMac = "edge_mac",
-  chromeWin = "chrome_win",
-  chromeMac = "chrome_mac",
-  chromeLinux = "chrome_linux",
-  chromeAndroid = "chrome_android",
-  firefoxWin = "firefox_win",
-  firefoxMac = "firefox_mac",
-  firefoxLinux = "firefox_linux",
-  firefoxAndroid = "firefox_android",
-  operaWin = "opera_win",
-  operaMac = "opera_mac",
-  safariIphone = "safari_iphone",
-  safariMac = "safari_mac",
-}
-
-type UserAgent = {
-  userAgent: string;
-  broswer: string;
-};
-
-const scrapeUserAgents = async () => {};
-
-const callbackHelper = async () => {};
-
-const buildHeader = async () => {};
