@@ -22,9 +22,9 @@ const validateIPaddress = (ipaddress: string) => {
  * formats Proxy object to string, to be passed in http header
  * @return String
  */
- export const formatProxy = (proxyObject: Proxy): string => {
+export const formatProxy = (proxyObject: Proxy): string => {
   return `http://${proxyObject.ipAddresses}:${proxyObject.portNumbers}`;
-}
+};
 
 /**
  * type Proxy
@@ -33,17 +33,17 @@ const validateIPaddress = (ipaddress: string) => {
 type Proxy = {
   domain?: string;
   link?: string;
-  ipAddresses: string;
-  portNumbers: string;
-  codes: string;
-  countries: string;
-  versions: string;
-  googleStatus: string;
-  anomymities: string;
-  https: boolean;
-  statusDuringScrape: string;
-  dateScraped: Date;
-  weight: number;
+  ipAddresses?: string;
+  portNumbers?: string;
+  codes?: string;
+  countries?: string;
+  versions?: string;
+  googleStatus?: string;
+  anomymities?: string;
+  https?: boolean;
+  statusDuringScrape?: string;
+  dateScraped?: Date;
+  weight?: number;
 };
 
 /**
@@ -129,10 +129,15 @@ export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
 
 /**
  * rotates/picks random proxy from above function
- * @todo implemnt weight - reward system reference: https://scrapfly.io/blog/how-to-rotate-proxies-in-web-scraping/
+ * @params state = 0 => proxy object, state = 1 => formatted proxy to be passed in http header
+ * @todo implement weighted rotator - reward/penalty system
+ *       reference: https://scrapfly.io/blog/how-to-rotate-proxies-in-web-scraping/
  * @return Proxy Object
  */
-export const rotateProxies = async () => {
+export const rotateProxies = async (state: number): Promise<string | Proxy> => {
+  if (state < 0 || state > 1) {
+    throw new Error("state error");
+  }
   const kLinks: string[] = [
     "https://www.sslproxies.org/",
     "https://www.socks-proxy.net/",
@@ -147,7 +152,7 @@ export const rotateProxies = async () => {
     .then(async (data) => {
       // inclusive
       let proxyIndex: number = Math.floor(Math.random() * data.length);
-      return data[proxyIndex];
+      return state === 0 ? data[proxyIndex] : formatProxy(data[proxyIndex]);
     })
     .catch((error) => {
       throw new Error(`Error with Proxy Rotator" ${error}`);
@@ -175,7 +180,9 @@ export const writeFileProxies = async (
     scrapeProxies(link)
       .then(async (data: Proxy[]) => {
         data.forEach(async (element: Proxy) => {
-          writeStream.write(element.ipAddresses + "\n");
+          writeStream.write(
+            `${element.ipAddresses}, ${element.dateScraped} "\n"`
+          );
         });
       })
       .catch((pscbError) => {
