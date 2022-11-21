@@ -1,7 +1,7 @@
 import axios from "axios";
 import { load } from "cheerio";
-import { createWriteStream, WriteStream } from 'fs';
-import { join } from 'path';
+import { createWriteStream, WriteStream } from "fs";
+import { join } from "path";
 
 /**
  * type Proxy
@@ -19,6 +19,7 @@ type Proxy = {
   anomymities: string;
   https: boolean;
   statusDuringScrape: string;
+  dateScraped: Date;
 };
 
 /**
@@ -28,7 +29,6 @@ type Proxy = {
  * @returns a promise, array of Proxy objects
  */
 export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
-  const ERROR_MESSAGE = "Error with Proxy Generator";
   let proxies: Proxy[] = [];
 
   await axios
@@ -56,10 +56,9 @@ export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
                 const value = $(elem).text().trim().toLowerCase();
                 const key = keys[idx];
 
-                currentProxy.domain = link.substring(
-                  link.indexOf("www.")
-                );
+                currentProxy.domain = link.substring(link.indexOf("www."));
                 currentProxy.link = link;
+                currentProxy.dateScraped = new Date();
 
                 if (key === "ip address") {
                   currentProxy.ipAddresses = value;
@@ -88,9 +87,36 @@ export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
         });
     })
     .catch(async (error) => {
-      return `${ERROR_MESSAGE} ${error}`;
+      throw new Error(`Error with Proxy Scraper" ${error}`);
     });
   return proxies;
+};
+
+/**
+ * rotates/picks random proxy from above function
+ * @todo implemnt weight - reward system reference: https://scrapfly.io/blog/how-to-rotate-proxies-in-web-scraping/
+ * @return Proxy Object
+ */
+export const rotateProxies = async () => {
+  const kLinks: string[] = [
+    "https://www.sslproxies.org/",
+    "https://www.socks-proxy.net/",
+    "https://free-proxy-list.net/",
+    "https://www.us-proxy.org/",
+    "https://free-proxy-list.net/uk-proxy.html",
+    "https://free-proxy-list.net/anonymous-proxy.html",
+  ];
+  // inclusive
+  let linkIndex: number = Math.floor(Math.random() * 6);
+  return scrapeProxies(kLinks[linkIndex])
+    .then(async (data) => {
+      // inclusive
+      let proxyIndex: number = Math.floor(Math.random() * data.length);
+      return data[proxyIndex];
+    })
+    .catch((error) => {
+      throw new Error(`Error with Proxy Rotator" ${error}`);
+    });
 };
 
 /**
@@ -99,21 +125,28 @@ export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
  *
  * @return none
  */
- export const proxiesWriteFile = async (filename: string, link: string): Promise<void> => {
+export const writeFileProxies = async (
+  filename: string,
+  link: string
+): Promise<void> => {
   // flags: w = Open file for reading and writing. File is created if not exists
   try {
-    let writeStream: WriteStream = createWriteStream(join(__dirname, filename), {
-      flags: 'w'
-    });
-    scrapeProxies(link).then(async (data: Proxy[]) => {
-      data.forEach(async (element: Proxy) => {
-        writeStream.write(element.ipAddresses + "\n");
-      })     
-    }).catch((pscbError) => {
-      throw new Error("proxy scraper callback error " + String(pscbError));
-    })
+    let writeStream: WriteStream = createWriteStream(
+      join(__dirname, filename),
+      {
+        flags: "w",
+      }
+    );
+    scrapeProxies(link)
+      .then(async (data: Proxy[]) => {
+        data.forEach(async (element: Proxy) => {
+          writeStream.write(element.ipAddresses + "\n");
+        });
+      })
+      .catch((pscbError) => {
+        throw new Error("proxy scraper callback error " + String(pscbError));
+      });
   } catch (awtfError) {
     throw new Error("async write to file error " + String(awtfError));
   }
-}
-
+};
