@@ -4,6 +4,29 @@ import { createWriteStream, WriteStream } from "fs";
 import { join } from "path";
 
 /**
+ * Validates passes in ipaddress
+ * source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses
+ */
+const validateIPaddress = (ipaddress: string) => {
+  if (
+    /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+      ipaddress
+    )
+  ) {
+    return true;
+  }
+  return false;
+};
+
+/**
+ * formats Proxy object to string, to be passed in http header
+ * @return String
+ */
+ export const formatProxy = (proxyObject: Proxy): string => {
+  return `http://${proxyObject.ipAddresses}:${proxyObject.portNumbers}`;
+}
+
+/**
  * type Proxy
  * data members are from sslproxies.org tables
  */
@@ -20,6 +43,7 @@ type Proxy = {
   https: boolean;
   statusDuringScrape: string;
   dateScraped: Date;
+  weight: number;
 };
 
 /**
@@ -60,8 +84,19 @@ export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
                 currentProxy.link = link;
                 currentProxy.dateScraped = new Date();
 
+                const InvalidIP = {};
                 if (key === "ip address") {
-                  currentProxy.ipAddresses = value;
+                  try {
+                    if (!validateIPaddress(value)) {
+                      currentProxy.ipAddresses = "Invalid";
+                      throw InvalidIP;
+                    }
+                    currentProxy.ipAddresses = value;
+                  } catch (error) {
+                    if (error != InvalidIP) {
+                      throw new Error(`${error}`);
+                    }
+                  }
                 } else if (key === "port") {
                   currentProxy.portNumbers = value;
                 } else if (key === "code") {
