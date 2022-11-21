@@ -1,5 +1,7 @@
 import axios from "axios";
 import { load } from "cheerio";
+import { createWriteStream, WriteStream } from 'fs';
+import { join } from 'path';
 
 /**
  * type Proxy
@@ -18,29 +20,19 @@ type Proxy = {
   https: boolean;
   statusDuringScrape: string;
 };
+
 /**
  * scrapes random table of proxies from sslproxies.org
  * @todo: redesign - not to be random table
  *
- * @returns array of Proxy objects
+ * @returns a promise, array of Proxy objects
  */
-export const scrapeProxies = async () => {
+export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
   const ERROR_MESSAGE = "Error with Proxy Generator";
-  const links = [
-    "https://www.sslproxies.org/",
-    "https://www.socks-proxy.net/",
-    "https://free-proxy-list.net/",
-    "https://www.us-proxy.org/",
-    "https://free-proxy-list.net/uk-proxy.html",
-    "https://free-proxy-list.net/anonymous-proxy.html",
-  ];
-
-  // not inclusive
-  let linkIndex: number = Math.floor(Math.random() * 6);
   let proxies: Proxy[] = [];
 
   await axios
-    .get(links[linkIndex])
+    .get(link)
     .then(async (response) => {
       // load html data with cheerio
       const $ = load(response.data);
@@ -64,10 +56,10 @@ export const scrapeProxies = async () => {
                 const value = $(elem).text().trim().toLowerCase();
                 const key = keys[idx];
 
-                currentProxy.domain = links[linkIndex].substring(
-                  links[linkIndex].indexOf("www.")
+                currentProxy.domain = link.substring(
+                  link.indexOf("www.")
                 );
-                currentProxy.link = links[linkIndex];
+                currentProxy.link = link;
 
                 if (key === "ip address") {
                   currentProxy.ipAddresses = value;
@@ -100,3 +92,28 @@ export const scrapeProxies = async () => {
     });
   return proxies;
 };
+
+/**
+ * scrapes random table of proxies from sslproxies.org and writes to file
+ * @todo: write to database, looping too many times
+ *
+ * @return none
+ */
+ export const proxiesWriteFile = async (filename: string, link: string): Promise<void> => {
+  // flags: w = Open file for reading and writing. File is created if not exists
+  try {
+    let writeStream: WriteStream = createWriteStream(join(__dirname, filename), {
+      flags: 'w'
+    });
+    scrapeProxies(link).then(async (data: Proxy[]) => {
+      data.forEach(async (element: Proxy) => {
+        writeStream.write(element.ipAddresses + "\n");
+      })     
+    }).catch((pscbError) => {
+      throw new Error("proxy scraper callback error " + String(pscbError));
+    })
+  } catch (awtfError) {
+    throw new Error("async write to file error " + String(awtfError));
+  }
+}
+
