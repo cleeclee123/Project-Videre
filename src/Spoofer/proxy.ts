@@ -1,5 +1,6 @@
 import axios from "axios";
 import { load } from "cheerio";
+import { index } from "cheerio/lib/api/traversing";
 import { createWriteStream, WriteStream } from "fs";
 import { join } from "path";
 
@@ -158,6 +159,29 @@ export const rotateProxies = async (state: number): Promise<string | Proxy> => {
       throw new Error(`Error with Proxy Rotator" ${error}`);
     });
 };
+
+/**
+ * gets the subnet of the ip adress from passed in proxy object
+ * @params proxy Proxy object
+ * @return type number, subnet of ip address
+ */
+export const getSubnet = (proxy: Proxy): string => {
+  let indexOne: number | undefined = proxy.ipAddresses?.indexOf(".");
+  if (typeof indexOne === undefined || typeof proxy.ipAddresses === undefined) {
+    throw new Error("index error");
+  }
+  let indexTwo: number | undefined = proxy.ipAddresses?.indexOf(
+    ".",
+    Number(indexOne) + 1
+  );
+  return String(proxy.ipAddresses).substring(Number(indexOne), indexTwo);
+};
+
+/**
+ * ensures that two ip addresses with the same subnet doesnt get picked twice in a row
+ * @todo this function
+ */
+export const handleDiffSubnet = () => {};
 
 /**
  * scrapes random table of proxies from sslproxies.org and writes to file
