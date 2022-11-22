@@ -9,11 +9,9 @@ import { join } from "path";
  * source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses
  */
 const validateIPaddress = (ipaddress: string) => {
-  if (
-    /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-      ipaddress
-    )
-  ) {
+  const validIPAddressRegEx =
+    /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  if (validIPAddressRegEx.test(ipaddress)) {
     return true;
   }
   return false;
