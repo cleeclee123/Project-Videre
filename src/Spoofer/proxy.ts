@@ -1,6 +1,5 @@
 import axios from "axios";
 import { load } from "cheerio";
-import { index } from "cheerio/lib/api/traversing";
 import { createWriteStream, WriteStream } from "fs";
 import { join } from "path";
 
@@ -129,8 +128,10 @@ export const scrapeProxies = async (link: string): Promise<Proxy[]> => {
 /**
  * rotates/picks random proxy from above function
  * @params state = 0 => proxy object, state = 1 => formatted proxy to be passed in http header
- * @todo implement weighted rotator - reward/penalty system
- *       reference: https://scrapfly.io/blog/how-to-rotate-proxies-in-web-scraping/
+ * @todo:
+ *       - implement weighted rotator - reward/penalty system
+ *       - implement subnet rotator
+ *       - reference: https://scrapfly.io/blog/how-to-rotate-proxies-in-web-scraping/
  * @return Proxy Object
  */
 export const rotateProxies = async (state: number): Promise<string | Proxy> => {
