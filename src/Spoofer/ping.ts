@@ -8,6 +8,8 @@ import { createRequire } from "module";
  *  - https://nodejs.org/api/dns.html
  *  - https://whatismyipaddress.com/ip-lookup (build own api)
  *  - https://stackoverflow.com/questions/4737130/how-to-ping-from-a-node-js-app
+ *  - https://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
+ *  - https://nodejs.org/docs/v8.1.4/api/child_process.html#child_process_child_process_spawn_command_args_options
  */
 
 const require = createRequire(import.meta.url);
