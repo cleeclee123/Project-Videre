@@ -80,6 +80,9 @@ export const generateClassD = (): GenIP => {
 
 /**.
  * generates random ip address, idk if it works tho, just for fun
+ * @todo: 
+ *    - generate every ip address in a class
+ *      - just four lopps
  * @return string that resembles an iv4 ip address
  */
 export const generateIP = () => {};
