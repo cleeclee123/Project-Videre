@@ -17,11 +17,8 @@ const getRandomArbitrary = (min: number, max: number): number => {
 export const generateClassA = (): GenIP => {
   // 127.xxx.xxx.xxx reserved for loopback and diagnostic functions
   let netID: number = getRandomArbitrary(1, 127);
-  let classAIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-    )}.${getRandomArbitrary(0, 256)}`;
-  
+  let classAIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}`;
+
   let classA = {} as GenIP;
   classA.netid = netID;
   classA.ipaddress = classAIP;
@@ -33,42 +30,33 @@ export const generateClassA = (): GenIP => {
 // medium sized networks
 export const generateClassB = (): GenIP => {
   let netID: number = getRandomArbitrary(128, 192);
-  let classBIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}`;
+  let classBIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}`;
 
   let classB = {} as GenIP;
   classB.netid = netID;
   classB.ipaddress = classBIP;
   classB.class = "class b";
-  
+
   return classB;
 };
 
 // local area network
 export const generateClassC = (): GenIP => {
   let netID: number = getRandomArbitrary(192, 224);
-  let classCIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}`;
+  let classCIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}`;
 
   let classC = {} as GenIP;
   classC.netid = netID;
   classC.ipaddress = classCIP;
   classC.class = "class c";
-  
+
   return classC;
 };
 
 // reversed for multi-tasking
 export const generateClassD = (): GenIP => {
   let netID: number = getRandomArbitrary(224, 239);
-  let classDIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}`;
+  let classDIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}`;
 
   let classD = {} as GenIP;
   classD.netid = netID;
@@ -80,7 +68,7 @@ export const generateClassD = (): GenIP => {
 
 /**.
  * generates random ip address, idk if it works tho, just for fun
- * @todo: 
+ * @todo:
  *    - generate every ip address in a class
  *      - just four lopps
  * @return string that resembles an iv4 ip address
