@@ -1,10 +1,4 @@
-import {
-  ChildProcessWithoutNullStreams,
-  spawn,
-  spawnSync,
-  ChildProcess,
-} from "child_process";
-import process from "node:process";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import * as util from "util";
 import { createRequire } from "module";
 
@@ -17,13 +11,6 @@ import { createRequire } from "module";
  *  - https://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
  *  - https://nodejs.org/docs/v8.1.4/api/child_process.html#child_process_child_process_spawn_command_args_options
  */
-
-type Packets = {
-  sent: number;
-  received: number;
-  lost: number;
-  rate: number;
-};
 
 const require = createRequire(import.meta.url);
 const exec = util.promisify(require("child_process").exec);
@@ -48,16 +35,22 @@ export const pingChuck = (host: any, numberPacket: any) => {
   ping.on("close", (code) => {
     console.log(`child process exited with code ${code}`);
   });
-
-  ping.on("SIGINT", () => {
-    console.log("here");
-  });
 };
 
-// check response from live output, still slow af tho on non-responsive servers
-export const checkResponse = (host: any) => {
+/**
+ * check response by spawning child process and running ping command on passed in ip address, with live terminal output to console
+ * pretty fast at getting response (time to server + sub 100 ms), still slow af tho on non-responsive servers (1000-1500 ms)
+ * Notes:
+ *  - ping commannd, unrealiable to determine if servers are up, lack of evidennce is not evidence of absnece
+ *  - function resolves promise right away after parsing output, kills child process with SIGKILl signal
+ * @param host, ip address to be ping (string)
+ * @returns Promise<boolean> true if server is up, false if no response/timeout from ping
+ */
+export const checkResponse = (host: string): Promise<boolean> => {
+  // using spawn over exec, Spawn returns a childObject, listening for events
+  // flags: -n number of packets sent, -w wait until timeout
   const kPackets: string = "1";
-  const kTimeout: string = "1000" // 1 second
+  const kTimeout: string = "1000"; // 1 second
   const ping: ChildProcessWithoutNullStreams = spawn(
     "ping",
     [host, "-n", kPackets, "-w", kTimeout],
@@ -85,7 +78,7 @@ export const checkResponse = (host: any) => {
     // handling errors, just return false
     ping.stderr.on("data", async (data) => {
       console.log(data);
-      reject(new Error("spawn process error"))
+      reject(new Error("spawn process error"));
       ping.kill("SIGKILL");
     });
 
@@ -98,13 +91,25 @@ export const checkResponse = (host: any) => {
 
 /**
  * builds packet object to be used in parsing all ip addresses
- * sends 3 packets to server
- * @param host, passed in ip address
+ * sends 3 packets to server, idk why i made this function
+ * @param host, passed in ip address (string)
+ * @param numPackets, number of packets sent to passed in server
+ * @return PingResponse
  */
-const getPackets = (host: any) => {
-  const kPackets: number = 3;
+type PingResponse = {
+  sent: number; // packets sent
+  received: number; // replies received
+  lost: number; // pakcets lost
+  rate: number; // loss rate of packets sent
+  output: string // output of process
+};
+
+const getPackets = (host: string, numPackets: number) => {
+  let response = {} as PingResponse;
+  response.sent = numPackets;
+
   const ping: ChildProcessWithoutNullStreams = spawn("ping", [
-    `${host} -n ${kPackets}`,
+    `${host} -n ${numPackets}`,
   ]);
 
   // stream standard output
