@@ -1,4 +1,4 @@
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import { ChildProcessWithoutNullStreams, spawn, spawnSync } from "child_process";
 import process from "node:process";
 import * as util from "util";
 import { createRequire } from "module";
@@ -46,7 +46,7 @@ export const pingChuck = (host: any, numberPacket: any) => {
 
   ping.on("SIGINT", () => {
     console.log("here");
-  })
+  });
 };
 
 export const checkResponse = (host: any) => {
@@ -61,26 +61,26 @@ export const checkResponse = (host: any) => {
   ping.stdout.setEncoding("utf8");
   ping.stdout.on("data", (data) => {
     console.log(`stdout: ${data}`);
+    // server doesnt send response back
     if (String(data).toLowerCase().includes("request time out")) {
-      ping.stdout.pause();
       ping.kill(1);
     }
+    // server sends response back
     if (String(data).toLowerCase().includes("reply")) {
-      ping.stdout.pause();
       ping.kill(0);
     }
   });
-  
+
   // handling errors, just return false
   ping.stderr.on("data", (data) => {
-    ping.kill(undefined);
-  });
-  
-  // handling interuptions
-  ping.on('SIGINT', () => {
-    console.log("here");
+    console.log(data)
+    ping.kill("SIGKILL");
   });
 
+  // handling interuptions
+  ping.on("SIGINT", () => {
+    console.log("here");
+  });
 
   // handle stream close, return result/
   // what i have so far, checks code of processed killed
@@ -93,7 +93,7 @@ export const checkResponse = (host: any) => {
         resolve(false);
       }
     });
-    
+
     // what i want to do
     // // handle sucess
     // ping.on("SIGINT", async () => {
