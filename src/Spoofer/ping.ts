@@ -49,6 +49,7 @@ export const pingChuck = (host: any, numberPacket: any) => {
   });
 };
 
+// check response from live output, slow af tho on dead servers
 export const checkResponse = (host: any) => {
   const kPackets: string = "2";
   const ping: ChildProcessWithoutNullStreams = spawn(
