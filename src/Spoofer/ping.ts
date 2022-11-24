@@ -1,4 +1,9 @@
-import { ChildProcessWithoutNullStreams, spawn, spawnSync } from "child_process";
+import {
+  ChildProcessWithoutNullStreams,
+  spawn,
+  spawnSync,
+  ChildProcess,
+} from "child_process";
 import process from "node:process";
 import * as util from "util";
 import { createRequire } from "module";
@@ -49,62 +54,45 @@ export const pingChuck = (host: any, numberPacket: any) => {
   });
 };
 
-// check response from live output, slow af tho on dead servers
+// check response from live output, still slow af tho on non-responsive servers
 export const checkResponse = (host: any) => {
-  const kPackets: string = "2";
+  const kPackets: string = "1";
+  const kTimeout: string = "1000" // 1 second
   const ping: ChildProcessWithoutNullStreams = spawn(
     "ping",
-    [host, "-n", kPackets],
+    [host, "-n", kPackets, "-w", kTimeout],
     { detached: true }
   );
 
-  // stream standard output
-  ping.stdout.setEncoding("utf8");
-  ping.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-    // server doesnt send response back
-    if (String(data).toLowerCase().includes("request time out")) {
-      ping.kill(1);
-    }
-    // server sends response back
-    if (String(data).toLowerCase().includes("reply")) {
-      ping.kill(0);
-    }
-  });
-
-  // handling errors, just return false
-  ping.stderr.on("data", (data) => {
-    console.log(data)
-    ping.kill("SIGKILL");
-  });
-
-  // handling interuptions
-  ping.on("SIGINT", () => {
-    console.log("here");
-  });
-
-  // handle stream close, return result/
-  // what i have so far, checks code of processed killed
-  // slow, still finishes request to the sever ie doesnt terminate process entirely
   return new Promise((resolve, reject) => {
-    ping.on("exit", async (code) => {
-      if (code === 0) {
-        resolve(true);
-      } else {
+    // stream standard output
+    ping.stdout.setEncoding("utf8");
+    ping.stdout.on("data", async (data) => {
+      console.log(`stdout: ${data}`);
+
+      // server doesnt send response back
+      if (String(data).toLowerCase().includes("request")) {
         resolve(false);
+        ping.kill("SIGKILL");
+      }
+      // server sends response back
+      if (String(data).toLowerCase().includes("reply")) {
+        resolve(true);
+        ping.kill("SIGKILL");
       }
     });
 
-    // what i want to do
-    // // handle sucess
-    // ping.on("SIGINT", async () => {
-    //   resolve(true);
-    // });
+    // handling errors, just return false
+    ping.stderr.on("data", async (data) => {
+      console.log(data);
+      reject(new Error("spawn process error"))
+      ping.kill("SIGKILL");
+    });
 
-    // // handle failure
-    // ping.on("SIGQUIT", async () => {
-    //   resolve(false);
-    // });
+    // handle spawn exit
+    ping.on("exit", async (code) => {
+      console.log(`process exited with ${code}`);
+    });
   });
 };
 
