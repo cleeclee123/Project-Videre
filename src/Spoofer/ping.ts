@@ -90,6 +90,21 @@ export const checkResponse = (host: string): Promise<boolean> => {
 };
 
 /**
+ * @todo: spawn child process and run nmap
+ * gets port number(s) running passed in ip address
+ * references: 
+ *  - https://stackoverflow.com/questions/7614318/how-to-find-port-number-of-ip-address
+ *  - 
+ * @param hos, passed in ip address (string)
+ */
+type Ports = {
+  portNumbers: number[];
+}
+const getPorts = (host: string) /*: Ports*/ => {
+
+}
+
+/**
  * builds packet object to be used in parsing all ip addresses
  * sends 3 packets to server, idk why i made this function
  * @param host, passed in ip address (string)
