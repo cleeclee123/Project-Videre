@@ -1,16 +1,7 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import * as util from "util";
 import { createRequire } from "module";
-
-/**
- * @todo: Ping generated ip address, determine if address is useable for proxy, push into set
- * @references
- *  - https://nodejs.org/api/dns.html
- *  - https://whatismyipaddress.com/ip-lookup (build own api)
- *  - https://stackoverflow.com/questions/4737130/how-to-ping-from-a-node-js-app
- *  - https://stackoverflow.com/questions/20643470/execute-a-command-line-binary-with-node-js
- *  - https://nodejs.org/docs/v8.1.4/api/child_process.html#child_process_child_process_spawn_command_args_options
- */
+import * as net from "net";
 
 const require = createRequire(import.meta.url);
 const exec = util.promisify(require("child_process").exec);
@@ -90,21 +81,6 @@ export const checkResponse = (host: string): Promise<boolean> => {
 };
 
 /**
- * @todo: spawn child process and run nmap
- * gets port number(s) running passed in ip address
- * references: 
- *  - https://stackoverflow.com/questions/7614318/how-to-find-port-number-of-ip-address
- *  - 
- * @param hos, passed in ip address (string)
- */
-type Ports = {
-  portNumbers: number[];
-}
-const getPorts = (host: string) /*: Ports*/ => {
-
-}
-
-/**
  * builds packet object to be used in parsing all ip addresses
  * sends 3 packets to server, idk why i made this function
  * @param host, passed in ip address (string)
@@ -116,10 +92,10 @@ type PingResponse = {
   received: number; // replies received
   lost: number; // pakcets lost
   rate: number; // loss rate of packets sent
-  output: string // output of process
+  output: string; // output of process
 };
 
-const getPackets = (host: string, numPackets: number) => {
+export const getPackets = (host: string, numPackets: number) => {
   let response = {} as PingResponse;
   response.sent = numPackets;
 
@@ -146,4 +122,73 @@ const getPackets = (host: string, numPackets: number) => {
   ping.on("close", (code) => {
     console.log(`child process exited with code ${code}`);
   });
+};
+
+/**
+ * attempts to connect to socket with passed in ip address on passed in port
+ * resolves promise to true right away if port is open, to false if port is closed
+ * @param host, passed in ip address (string)
+ * @param port, passed in port number (string but node net wants it a number)
+ */
+export const checkPort = (
+  host: string,
+  port: string,
+  millis: number
+): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    // opens socket connection
+    let connection: net.Socket = net.connect(Number(port), host, () => {
+      connection.destroy();
+      resolve(true);
+    });
+
+    // handle timeout error
+    setTimeout(() => {
+      connection.destroy();
+      resolve(false);
+    }, millis);
+
+    // handle socket connection error
+    connection.on("error", (error) => {
+      console.log(error);
+      resolve(false);
+    });
+  });
+};
+
+/**
+ * callback/promise helper to build proxy
+ * @param host 
+ * @param port 
+ * @returns Promise<String> proxy string
+ */
+export const buildProxyHelper = async (
+  host: string,
+  port: string
+): Promise<String> => {
+  return await checkPort(host, port, 1000).then((data) => {
+    if (data) {
+      if (port === String(443)) {
+        return `https://${host}:${String(port)}`;
+      } else {
+        return `http://${host}:${String(port)}`;
+      }
+    }
+    return "";
+  });
+};
+
+/**
+ * loops thru http(s) ports and checks if able to connect, 
+ * @param host 
+ * @returns Promise<Array<String>> array of proxies associated with the host
+ */
+export const buildProxy = async (host: string): Promise<Array<String>> => {
+  const kHttpPorts: Array<number> = [80, 8080, 8008, 443];
+  let resPromise = await Promise.all(
+    kHttpPorts.map((port) => {
+      return buildProxyHelper(host, String(port));
+    })
+  );
+  return resPromise.filter(e => e !== "");
 };
