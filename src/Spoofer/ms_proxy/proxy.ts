@@ -26,7 +26,7 @@ export const checkPort = (
 
     // handle socket connection error
     connection.on("error", (error) => {
-      console.log(error);
+      console.log("error");
       resolve(false);
     });
   });
@@ -60,14 +60,11 @@ export const buildProxyHelper = async (
  * @returns Promise<Array<String>> array of proxies associated with the host
  */
 export const buildProxy = async (host: string): Promise<Array<String>> => {
-  var startTime = performance.now()
   const kHttpPorts: Array<number> = [80, 8080, 8008, 443];
   let resPromise = await Promise.all(
     kHttpPorts.map((port) => {
       return buildProxyHelper(host, String(port));
     })
   );
-  var endTime = performance.now()
-  console.log(`${endTime - startTime} milliseconds`);
   return resPromise.filter(e => e !== "");
 };
