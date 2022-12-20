@@ -1,7 +1,6 @@
-import * as proxy from "./proxy.js";
-
-type GenIP = {
-  netid: number;
+export type IPInfo = {
+  firstOctet: number;
+  subnet: number;
   ipaddress: string;
   class: string;
 };
@@ -16,66 +15,58 @@ export const getRandomArbitrary = (min: number, max: number): number => {
 };
 
 // large network of hosts
-export const generateClassA = (): GenIP => {
-  // 127.xxx.xxx.xxx reserved for loopback and diagnostic functions
-  let netID: number = getRandomArbitrary(1, 127);
-  let classAIP: string = `${netID}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(0, 256)}`;
-
-  let classA = {} as GenIP;
-  classA.netid = netID;
-  classA.ipaddress = classAIP;
-  classA.class = "class a";
-
+// 127.xxx.xxx.xxx reserved for loopback and diagnostic functions
+export const generateClassA = (): IPInfo => {
+  let classA = {} as IPInfo;
+  let firstOctet: number = getRandomArbitrary(1, 127);
+  let subnet: number = getRandomArbitrary(0, 256);
+  let generatedClassA: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
+  
+  classA.firstOctet = firstOctet;
+  classA.subnet = subnet;
+  classA.ipaddress = generatedClassA;
+  classA.class = "Class A";
   return classA;
 };
 
 // medium sized networks
-export const generateClassB = (): GenIP => {
-  let netID: number = getRandomArbitrary(128, 192);
-  let classBIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}`;
+export const generateClassB = (): IPInfo => {
+  let classB = {} as IPInfo;
+  let firstOctet: number = getRandomArbitrary(128, 192);
+  let subnet: number = getRandomArbitrary(0, 256);
+  let generatedClassB: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
 
-  let classB = {} as GenIP;
-  classB.netid = netID;
-  classB.ipaddress = classBIP;
+  classB.firstOctet = firstOctet;
+  classB.subnet = subnet;
+  classB.ipaddress = generatedClassB;
   classB.class = "class b";
-
   return classB;
 };
 
 // local area network
-export const generateClassC = (): GenIP => {
-  let netID: number = getRandomArbitrary(192, 224);
-  let classCIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}`;
+export const generateClassC = (): IPInfo => {
+  let classC = {} as IPInfo;
+  let firstOctet: number = getRandomArbitrary(192, 224);
+  let subnet: number = getRandomArbitrary(0, 256);
+  let generatedClassC: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
 
-  let classC = {} as GenIP;
-  classC.netid = netID;
-  classC.ipaddress = classCIP;
+  classC.firstOctet = firstOctet;
+  classC.subnet = subnet;
+  classC.ipaddress = generatedClassC;
   classC.class = "class c";
-
   return classC;
 };
 
 // reversed for multi-tasking
-export const generateClassD = (): GenIP => {
-  let netID: number = getRandomArbitrary(224, 239);
-  let classDIP = `${netID}.${getRandomArbitrary(0, 256)}.${getRandomArbitrary(
-    0,
-    256
-  )}.${getRandomArbitrary(0, 256)}`;
+export const generateClassD = (): IPInfo => {
+  let classD = {} as IPInfo;
+  let firstOctet: number = getRandomArbitrary(224, 239);
+  let subnet: number = getRandomArbitrary(0, 256);
+  let generatedClassD: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
 
-  let classD = {} as GenIP;
-  classD.netid = netID;
-  classD.ipaddress = classDIP;
+  classD.firstOctet = firstOctet;
+  classD.subnet = subnet;
+  classD.ipaddress = generatedClassD;
   classD.class = "class d";
-
   return classD;
 };
