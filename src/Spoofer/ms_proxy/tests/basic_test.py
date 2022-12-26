@@ -14,4 +14,6 @@ def check(proxy):
         print(f'error with {proxy}')
         return False
 
-print(check("49.0.2.242:8090"))
+# 45.86.76.196 80, 443
+# 5.180.68.146 80, 8008, 443
+print(check("162.223.88.61:8080"))

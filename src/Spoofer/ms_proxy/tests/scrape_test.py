@@ -6,7 +6,8 @@ import asyncio
 
 # get the list of free proxies
 def getProxies():
-    r = requests.get('https://free-proxy-list.net/')
+    # r = requests.get('https://free-proxy-list.net/')
+    r = requests.get('https://www.sslproxies.org/')
     soup = BeautifulSoup(r.content, 'html.parser')
     table = soup.find('tbody')
     proxies = []
