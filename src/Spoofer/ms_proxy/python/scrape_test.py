@@ -8,13 +8,14 @@ import asyncio
 
 
 def getProxiesList():
-    # r = requests.get('https://free-proxy-list.net/')
-    r = requests.get('https://www.sslproxies.org/')
+    r = requests.get('https://free-proxy-list.net/')
+    # r = requests.get('https://www.sslproxies.org/')
     soup = BeautifulSoup(r.content, 'html.parser')
     table = soup.find('tbody')
     proxies = []
     for row in table:
-        if row.find_all('td')[4].text == 'elite proxy':
+        # if row.find_all('td')[4].text == 'elite proxy':
+        if row.find_all('td')[4].text == 'anonymous':
             proxy = ':'.join([row.find_all('td')[0].text,
                              row.find_all('td')[1].text])
             proxies.append(proxy)
@@ -71,6 +72,6 @@ def check(proxy):
     else:
         None
 
-proxylist = getProxiesGithub()
+proxylist = getProxiesList()
 with concurrent.futures.ThreadPoolExecutor(max_workers=64) as executor:
     executor.map(check, proxylist)
