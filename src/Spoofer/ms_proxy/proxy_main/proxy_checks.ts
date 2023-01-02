@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import HttpsProxyAgent from "https-proxy-agent";
-import { ProxyStatus, uas } from "../types.js";
+import { ProxyStatus, uas, fetchConfig } from "../types.js";
 
 export const getMyPublicIP = async (): Promise<any | string> => {
   try {
@@ -24,22 +24,9 @@ export const testHTTP = async (
   port: string
 ): Promise<ProxyStatus | undefined> => {
   /** @todo: build custom implementation of http agent (tunneling), this will go thru proxy express server (configs will be handled in proxy server)*/
-  let config = {
-    headers: {
-      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
-      "Accept-Language": "en-US",
-      "Accept-Encoding": "gzip, deflate",
-      Accept: "text/html",
-      Referer: "http://www.google.com/",
-    },
-    agent: new HttpsProxyAgent.HttpsProxyAgent({
-      host: host,
-      port: Number(port),
-    }),
-  };
   try {
     let status = {} as ProxyStatus;
-    return await fetch(`http://ip-api.com/json/`, config).then(
+    return await fetch(`http://ip-api.com/json/`, fetchConfig(host, port)).then(
       async (response) => {
         if (response.status === 400) {
           console.log("400 response");
@@ -96,22 +83,8 @@ export const testGoogle = async (
   host: string,
   port: string
 ): Promise<boolean | undefined> => {
-  let config = {
-    headers: {
-      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
-      "Accept-Language": "en-US",
-      "Accept-Encoding": "gzip, deflate",
-      Accept: "text/html",
-      Referer: "http://www.google.com/",
-      Connection: "close",
-    },
-    agent: new HttpsProxyAgent.HttpsProxyAgent({
-      host: host,
-      port: Number(port),
-    }),
-  };
   try {
-    return await fetch(`https://www.google.com/`, config).then(
+    return await fetch(`https://www.google.com/`, fetchConfig(host, port)).then(
       async (response) => {
         if (response.status === 200) {
           return true;

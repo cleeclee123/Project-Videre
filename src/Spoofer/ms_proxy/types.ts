@@ -1,3 +1,5 @@
+import HttpsProxyAgent from "https-proxy-agent";
+
 export type IPInfo = {
   firstOctet: number;
   subnet: number;
@@ -31,12 +33,12 @@ export type ProxyStatus = {
   status: boolean;
   proxyType: string;
   country: string;
-  region: string,
-  city: string,
-  zip: string,
-  location: Object,
-  tz: string,
-  isp: string,
+  region: string;
+  city: string;
+  zip: string;
+  location: Object;
+  tz: string;
+  isp: string;
 };
 
 export const kHttpPorts: Array<ProtocolPort> = [
@@ -89,3 +91,22 @@ export const uas: Array<string> = [
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9",
   "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36",
 ];
+
+export const fetchConfig = (host: string, port: string) => {
+  return {
+    headers: {
+      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
+      Accept: "text/html",
+      "Accept-Language": "en-US",
+      "Accept-Encoding": "gzip, deflate",
+      Connection: "Keep-Alive",
+      "Upgrade-Insecure-Requests": "1",
+      "Cache-Control": "max-age=0",
+      Referer: "http://www.google.com/",
+    },
+    agent: new HttpsProxyAgent.HttpsProxyAgent({
+      host: host,
+      port: Number(port),
+    }),
+  };
+};
