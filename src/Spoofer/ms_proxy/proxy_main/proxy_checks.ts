@@ -15,9 +15,9 @@ export const getMyPublicIP = async (): Promise<any | string> => {
 };
 
 /**
- * tests if proxies work by checking current ip address on httpbin
- * @param proxy
- * @returns
+ * tests if proxies work (hides your actual public ip adress) by checking current ip address on httpbin
+ * @param proxy: host, port
+ * @returns if proxy works
  */
 export const testHTTPBin = async (
   host: string,
@@ -66,15 +66,14 @@ export const testHTTPBin = async (
 };
 
 /**
- * tests if proxies work by checking connection thru google
- * @param proxy
- * @returns
+ * tests if proxies work by checking connection through google
+ * @param proxy: host, port
+ * @returns if proxy works
  */
 export const testGoogle = async (
   host: string,
   port: string
 ): Promise<boolean | undefined> => {
-  /** @todo: build custom implementation of http agent (tunneling), this will go thru proxy express server (configs will be handled in proxy server)*/
   let config = {
     headers: {
       "User-Agent": uas[Math.floor(Math.random() * uas.length)],
@@ -89,7 +88,6 @@ export const testGoogle = async (
       port: Number(port),
     }),
   };
-  // can use this also: "http://ip-api.com/json/?fields=8217"
   try {
     return await fetch(`https://www.google.com/`, config).then(
       async (response) => {
