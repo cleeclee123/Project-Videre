@@ -1,29 +1,8 @@
 import * as net from "net";
-import fetch from "node-fetch";
-import HttpsProxyAgent from "https-proxy-agent";
 import * as ip from "./ipaddress.js";
-import { IPInfo } from "./ipaddress.js";
-import { Queue } from "../lib/queue.js";
-
-type ProxyParts = {
-  protocol: string;
-  host: string;
-  port: string;
-  proxyString: string;
-  httpbinTest: boolean;
-  googleTest: boolean;
-};
-
-type ProxiesInfo = {
-  ipInfo: IPInfo;
-  proxies: Array<ProxyParts>;
-};
-
-type ProtocolPort = {
-  protocol: string;
-  port: number;
-};
-
+import { Queue } from "../../lib/queue.js";
+import { testHTTPBin, testGoogle } from "./proxy_checks.js";
+import { ProxyParts, ProxiesInfo, kHttpPorts, uas } from "../types.js";
 export class Proxy {
   private capacity_: number;
   private count_: number;
@@ -42,51 +21,6 @@ export class Proxy {
     this.dateCreated_ = new Date();
     this.localAddress_ = "";
   }
-
-  /**
-   * tests if proxies work by checking current ip address on httpbin
-   * @param proxy
-   * @returns
-   */
-  public testHTTPBin = async (host: string, port: string) => {
-    let config = {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0",
-      },
-      agent: new HttpsProxyAgent.HttpsProxyAgent({
-        host: host,
-        port: Number(port),
-      }), // build custom implementation of http agent (tunneling), this will go thru proxy express server
-    };
-    try {
-      return await fetch(`https://httpbin.org/ip`, config).then(
-        async (response) => {
-          if (response.status === 400) {
-            return false;
-          }
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.indexOf("application/json") !== -1) {
-            let data: any = await response.json();
-            if (host === data["origin"]) {
-              return true;
-            }
-            return false;
-          }
-          return false;
-        }
-      );
-    } catch (error) {
-      console.log(`httpbin error: ${error}`);
-    }
-  };
-
-  /**
-   * tests if proxies work by checking connection thru google
-   * @param proxy
-   * @returns
-   */
-  public testGoogle = (proxy: string) => {};
 
   /**
    * attempts to connect to socket with passed in ip address on passed in port
@@ -114,7 +48,7 @@ export class Proxy {
 
       // handle socket connection error
       connection.on("error", (error) => {
-        console.log(`checkPort error: ${error}`);
+        console.log(`checkPort error: ${error} port: ${port}`);
         resolve(false);
       });
     });
@@ -134,38 +68,18 @@ export class Proxy {
       return new Promise(async (resolve, reject) => {
         let current = {} as ProxyParts;
         if (data) {
-          if (port === String(443)) {
-            current.host = host;
-            current.port = port;
-            current.protocol = "https";
-            current.proxyString = `https://${host}:${String(port)}`;
-            current.httpbinTest = false;
-            current.googleTest = false;
-            // if (await this.testGoogle(`https://${host}:${String(port)}`)) {
-            //   current.googleTest = true;
-            // }
-            if (await this.testHTTPBin(host, port)) {
-              current.httpbinTest = true;
-            }
-            resolve(current);
-          } else {
-            current.host = host;
-            current.port = port;
-            current.protocol = "http";
-            current.proxyString = `http://${host}:${String(port)}`;
-            current.httpbinTest = false;
-            current.googleTest = false;
-            // if (await this.testGoogle(`https://${host}:${String(port)}`)) {
-            //   current.googleTest = true;
-            // }
-            if (await this.testHTTPBin(host, port)) {
-              current.httpbinTest = true;
-            }
-            resolve(current);
-          }
-        } else {
-          resolve(current);
+          current.host = host;
+          current.port = port;
+          current.protocol = "http";
+          // (await this.testHttps(host, port)) ? current.https = true : current.https = false;
+          (await testHTTPBin(host, port))
+            ? (current.httpbinTest = true)
+            : (current.httpbinTest = false);
+          (await testGoogle(host, port))
+            ? (current.googleTest = true)
+            : (current.googleTest = false);
         }
+        resolve(current);
       });
     });
   };
@@ -173,39 +87,50 @@ export class Proxy {
   /**
    * loops thru http(s) ports and checks if able to connect, callback hell is inevitable
    * @param host
-   * @returns Promise<Array<String>> array of proxies associated with the host
+   * @returns Promise<Array<String>> array of proxies associated with the host, we check if undefined in generation functions
    */
   public buildProxy = async (
     host: string
   ): Promise<ProxyParts[] | undefined> => {
-    const kHttpPorts: Array<ProtocolPort> = [
-      { protocol: "http(s)", port: 80 },
-      { protocol: "http(s)", port: 8080 },
-      { protocol: "http(s)", port: 8008 },
-      { protocol: "http(s)", port: 443 },
-      { protocol: "http(s)", port: 3128 },
-      { protocol: "http(s)", port: 8118 },
-      { protocol: "http(s)", port: 8888 },
-      { protocol: "http(s)", port: 8090 },
-      { protocol: "http(s)", port: 8088 },
-      { protocol: "http(s)", port: 3128 },
-      { protocol: "http(s)", port: 8118 },
-      { protocol: "http(s)", port: 8888 },
-      { protocol: "http(s)", port: 8090 },
-      { protocol: "http(s)", port: 9030 },
-    ];
-    // const kSocksPorts: Array<ProtocolPort> = [{"protocol": "socks", "port": 80}]
     try {
       let res = kHttpPorts.map(async (port) => {
         return await this.buildProxyHelper(host, String(port.port));
       });
-      return Promise.all(res).then((promise) => {
+      return Promise.all(res).then(async (promise) => {
         return Promise.all(promise).then((parts) => {
           return parts.filter((value) => Object.keys(value).length !== 0);
         });
       });
     } catch (error) {
       console.log(`buildProxy error ${error}`);
+    }
+  };
+
+  /**
+   * check every port possible 1 to 65535, brute force approch to check for all open ports, not recommnended
+   * @param host
+   * @returns Promise<Array<String>> array of proxies associated with the host, we check if undefined in generation functions
+   */
+  public buildProxyAll = async (
+    host: string
+  ): Promise<ProxyParts[] | undefined> => {
+    const kPortRange = 65536;
+    // max - min + 1
+    const portArr = Array.from(new Array(8080 - 1 + 1).keys()).map((num) => {
+      return num + 1;
+    });
+    try {
+      let res = [80, 8080].map(async (port) => {
+        console.log(port);
+        return await this.buildProxyHelper(host, String(port));
+      });
+      return await Promise.all(res).then(async (promise) => {
+        return await Promise.all(promise).then((parts) => {
+          return parts.filter((value) => Object.keys(value).length !== 0);
+        });
+      });
+    } catch (error) {
+      console.log(`buildProxyAll error ${error}`);
     }
   };
 
@@ -217,7 +142,7 @@ export class Proxy {
     proxyInfo.ipInfo = ip.generateClassA();
     await this.buildProxy(proxyInfo.ipInfo.ipaddress).then((promiseParts) => {
       if (promiseParts !== undefined) {
-        if (promiseParts.length != 0) {
+        if (promiseParts.length !== 0) {
           proxyInfo.proxies = promiseParts;
           this.queue_.enqueue(proxyInfo);
           this.count_++;
@@ -317,8 +242,6 @@ export class Proxy {
     }
     // idk why i need to await this but it works
     await this.generateProxyClassA();
-    //await this.generateProxyClassB();
-    //await this.generateProxyClassC();
   };
 
   /**
@@ -350,21 +273,5 @@ export class Proxy {
       );
     });
     console.log(`proxies scanned on ${this.dateCreated_}`);
-  };
-
-  /**
-   *
-   * @returns
-   */
-  public getCurrentHost = () => {
-    return this.currentHost_;
-  };
-
-  /**
-   *
-   * @returns
-   */
-  public getCurrentPort = () => {
-    return this.currentPort_;
   };
 }

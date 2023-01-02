@@ -1,7 +1,8 @@
 import * as s_proxy from "./Spoofer/ms_proxy/scrape_proxy.js";
-import * as ip from "./Spoofer/ms_proxy/ipaddress.js";
+import * as ip from "./Spoofer/ms_proxy/proxy_main/ipaddress.js";
 import * as ping from "./Spoofer/lib/ping.js";
-import * as proxy from "./Spoofer/ms_proxy/proxy.js";
+import * as proxy from "./Spoofer/ms_proxy/proxy_main/proxy.js";
+import * as server from "./Spoofer/ms_proxy/proxy_main/proxy_server.js";
 import { performance } from "perf_hooks";
 
 // proxy.rotateProxies(1).then(async (data) => {
@@ -31,15 +32,43 @@ import { performance } from "perf_hooks";
 
 // console.log(ip.generateClassA());
 
-let max = 1;
-let count = 0;
-while (count < max) {
-  let ipad = ip.generateClassA().ipaddress;
-  await proxy.buildProxy(ipad).then(async (data) => {
-    if (data.length != 0) {
-      console.log("FOUND " + ipad + " " + data);
-      count++;
-    }
-  });
-  console.log("scanning " + ipad);
-}
+// let s = new server.Server(443);
+// s.start();
+
+// let s: server.Server = new server.Server(3001);
+// s.start();
+
+let p = new proxy.Proxy(5);
+// p.testHTTPBin("http://20.206.106.192:80").then((data) => {
+//   console.log(data);
+// })
+
+// p.checkPort("20.206.106.192", "80", 1000).then((data) => {
+//   console.log(data);
+// })
+
+// await p.buildProxyHelper("20.206.106.192", "6969").then(async (data) => {
+//   console.log(data);
+// });
+
+// 45.66.230.79
+// await p.buildProxy("195.178.197.20").then(async (data) => {
+//   console.log(data);
+// });
+
+await p.buildProxy("20.210.26.214").then(async (data) => {
+  console.log(data);
+});
+
+// await p.testHTTPBin("20.210.26.214", "3128").then((data) => {
+//   console.log(data);
+// })
+
+// await p.scanForProxies(3).then((data) => {
+//   console.log(data);
+// });
+// p.printQueue();
+
+// await p.testGoogle("18.231.196.99", "3629").then((data) => {
+//   console.log(data)
+// });

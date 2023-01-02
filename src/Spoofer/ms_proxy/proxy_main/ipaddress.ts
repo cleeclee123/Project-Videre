@@ -1,9 +1,4 @@
-export type IPInfo = {
-  firstOctet: number;
-  subnet: number;
-  ipaddress: string;
-  class: string;
-};
+import { IPInfo } from "../types.js";
 
 /**
  * This example returns a random number between the specified values. The returned value is no lower than (and may possibly equal) min, and is less than (and not equal) max.
@@ -20,8 +15,11 @@ export const generateClassA = (): IPInfo => {
   let classA = {} as IPInfo;
   let firstOctet: number = getRandomArbitrary(1, 127);
   let subnet: number = getRandomArbitrary(0, 256);
-  let generatedClassA: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
-  
+  let generatedClassA: string = `${firstOctet}.${getRandomArbitrary(
+    0,
+    256
+  )}.${subnet}.${getRandomArbitrary(0, 256)}`;
+
   classA.firstOctet = firstOctet;
   classA.subnet = subnet;
   classA.ipaddress = generatedClassA;
@@ -34,7 +32,10 @@ export const generateClassB = (): IPInfo => {
   let classB = {} as IPInfo;
   let firstOctet: number = getRandomArbitrary(128, 192);
   let subnet: number = getRandomArbitrary(0, 256);
-  let generatedClassB: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
+  let generatedClassB: string = `${firstOctet}.${getRandomArbitrary(
+    0,
+    256
+  )}.${subnet}.${getRandomArbitrary(0, 256)}`;
 
   classB.firstOctet = firstOctet;
   classB.subnet = subnet;
@@ -48,7 +49,10 @@ export const generateClassC = (): IPInfo => {
   let classC = {} as IPInfo;
   let firstOctet: number = getRandomArbitrary(192, 224);
   let subnet: number = getRandomArbitrary(0, 256);
-  let generatedClassC: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
+  let generatedClassC: string = `${firstOctet}.${getRandomArbitrary(
+    0,
+    256
+  )}.${subnet}.${getRandomArbitrary(0, 256)}`;
 
   classC.firstOctet = firstOctet;
   classC.subnet = subnet;
@@ -62,7 +66,10 @@ export const generateClassD = (): IPInfo => {
   let classD = {} as IPInfo;
   let firstOctet: number = getRandomArbitrary(224, 239);
   let subnet: number = getRandomArbitrary(0, 256);
-  let generatedClassD: string = `${firstOctet}.${getRandomArbitrary(0,256)}.${subnet}.${getRandomArbitrary(0, 256)}`;
+  let generatedClassD: string = `${firstOctet}.${getRandomArbitrary(
+    0,
+    256
+  )}.${subnet}.${getRandomArbitrary(0, 256)}`;
 
   classD.firstOctet = firstOctet;
   classD.subnet = subnet;
