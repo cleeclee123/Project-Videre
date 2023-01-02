@@ -9,7 +9,8 @@
     "devServer": "npx tsc && node build/server.js",
     "devCrawl": "npx tsc && node build/Crawler.js",
     "start": "npx tsc && node build/index.js",
-    "devProxyServer": "npx tsc && node build/Spoofer/ms_proxy/proxy_server.js"
+    "devProxyServer": "npx tsc && node build/Spoofer/ms_proxy/proxy_main/proxy_server.js",
+    "devDummyServer": "npx tsc && node build/Spoofer/ms_proxy/proxy_main/dummy_server.js"
   },
   "repository": {
     "type": "git",
