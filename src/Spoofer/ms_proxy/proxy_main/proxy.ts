@@ -3,23 +3,18 @@ import * as ip from "./ipaddress.js";
 import { Queue } from "../../lib/queue.js";
 import { testHTTPBin, testGoogle } from "./proxy_checks.js";
 import { ProxyParts, ProxiesInfo, kHttpPorts, uas } from "../types.js";
+
 export class Proxy {
   private capacity_: number;
   private count_: number;
   private queue_: Queue<ProxiesInfo>;
-  private currentHost_: string;
-  private currentPort_: string;
   private dateCreated_: Date;
-  private localAddress_: string;
 
   constructor(capacity: number) {
     this.capacity_ = capacity;
     this.count_ = 0;
     this.queue_ = new Queue<ProxiesInfo>(capacity);
-    this.currentHost_ = "";
-    this.currentPort_ = "";
     this.dateCreated_ = new Date();
-    this.localAddress_ = "";
   }
 
   /**
@@ -209,26 +204,26 @@ export class Proxy {
   /**
    * generation for class d proxies, being no bueno
    */
-  private generateProxyClassD = async (): Promise<void> => {
-    let proxyInfo = {} as ProxiesInfo;
-    proxyInfo.ipInfo = ip.generateClassD();
-    await this.buildProxy(proxyInfo.ipInfo.ipaddress).then((promiseParts) => {
-      if (promiseParts !== undefined) {
-        if (promiseParts.length != 0) {
-          proxyInfo.proxies = promiseParts;
-          this.queue_.enqueue(proxyInfo);
-          this.count_++;
-          console.log(promiseParts);
-          console.log(`count updated ${this.count_}`);
-        }
-      } else {
-        return;
-      }
-    });
-    console.log(
-      `scanning ${proxyInfo.ipInfo.ipaddress} current count ${this.count_} CLASS D`
-    );
-  };
+  // private generateProxyClassD = async (): Promise<void> => {
+  //   let proxyInfo = {} as ProxiesInfo;
+  //   proxyInfo.ipInfo = ip.generateClassD();
+  //   await this.buildProxy(proxyInfo.ipInfo.ipaddress).then((promiseParts) => {
+  //     if (promiseParts !== undefined) {
+  //       if (promiseParts.length != 0) {
+  //         proxyInfo.proxies = promiseParts;
+  //         this.queue_.enqueue(proxyInfo);
+  //         this.count_++;
+  //         console.log(promiseParts);
+  //         console.log(`count updated ${this.count_}`);
+  //       }
+  //     } else {
+  //       return;
+  //     }
+  //   });
+  //   console.log(
+  //     `scanning ${proxyInfo.ipInfo.ipaddress} current count ${this.count_} CLASS D`
+  //   );
+  // };
 
   /**
    * wrapper function for all proxy generation functions
@@ -254,22 +249,21 @@ export class Proxy {
     }
   };
 
-  private printProxyParts = (parts: ProxyParts[]) => {
-    parts.forEach((p) => {
-      console.log(p);
-    });
-  };
-
   /**
    * prints queue
    */
   public printQueue = () => {
+    const printProxyParts = (parts: ProxyParts[]) => {
+      parts.forEach((p) => {
+        console.log(p);
+      });
+    };
     this.queue_.getStorage().forEach((e) => {
       console.log(
         "ip info: " +
           e.ipInfo.ipaddress +
           " proxies: " +
-          this.printProxyParts(e.proxies)
+          printProxyParts(e.proxies)
       );
     });
     console.log(`proxies scanned on ${this.dateCreated_}`);

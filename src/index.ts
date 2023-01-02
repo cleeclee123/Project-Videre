@@ -3,7 +3,7 @@ import * as ip from "./Spoofer/ms_proxy/proxy_main/ipaddress.js";
 import * as ping from "./Spoofer/lib/ping.js";
 import * as proxy from "./Spoofer/ms_proxy/proxy_main/proxy.js";
 import * as server from "./Spoofer/ms_proxy/proxy_main/proxy_server.js";
-import { performance } from "perf_hooks";
+import * as check from "./Spoofer/ms_proxy/proxy_main/proxy_checks.js";
 
 // proxy.rotateProxies(1).then(async (data) => {
 //   console.log(data);
@@ -56,9 +56,9 @@ let p = new proxy.Proxy(5);
 //   console.log(data);
 // });
 
-await p.buildProxy("20.210.26.214").then(async (data) => {
-  console.log(data);
-});
+// await p.buildProxy("20.210.26.214").then(async (data) => {
+//   console.log(data);
+// });
 
 // await p.testHTTPBin("20.210.26.214", "3128").then((data) => {
 //   console.log(data);
@@ -72,3 +72,7 @@ await p.buildProxy("20.210.26.214").then(async (data) => {
 // await p.testGoogle("18.231.196.99", "3629").then((data) => {
 //   console.log(data)
 // });
+
+await check.testAnonymity("210.245.124.131", "5239").then((data) => {
+  console.log(data)
+})

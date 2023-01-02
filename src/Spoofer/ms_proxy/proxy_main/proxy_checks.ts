@@ -15,7 +15,7 @@ export const getMyPublicIP = async (): Promise<any | string> => {
 };
 
 /**
- * tests if proxies work (hides your actual public ip adress) by checking current ip address on httpbin
+ * tests if proxies work (hides your actual public ip adress transparent v. anonymous) by checking current ip address on httpbin
  * @param proxy: host, port
  * @returns if proxy works
  */
@@ -52,7 +52,10 @@ export const testHTTPBin = async (
           } else {
             return getMyPublicIP().then((publicip) => {
               if (String(data["origin"]) !== publicip) {
+                console.log("proxy is anonymous");
                 return true;
+              } else {
+                console.log("proxy is transparent - ignore");
               }
             });
           }
@@ -99,5 +102,39 @@ export const testGoogle = async (
     );
   } catch (error) {
     console.log(`google error: ${error}`);
+  }
+};
+
+/**
+ * further proxy checks to see if elite proxy
+ * approach: run own http server to see the headers server receives with proxy 
+ * reference: https://stackoverflow.com/questions/30293385/how-to-check-proxy-headers-to-check-anonymity
+ * @param proxy: host, port
+ * @returns number 0 (proxy is anonymous not elite) or 1 (proxy is elite) 
+ */
+export const testAnonymity = async (host: string, port: string)/* : number */ => {
+  let config = {
+    headers: {
+      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
+      "Accept-Language": "en-US",
+      "Accept-Encoding": "gzip, deflate",
+      Accept: "text/html",
+      Referer: "http://www.google.com/",
+    },
+    agent: new HttpsProxyAgent.HttpsProxyAgent({
+      host: host,
+      port: Number(port),
+    }),
+  };
+  try {
+    // server/api approach? 
+
+    // functional appraoch: 
+    // start server (open socket?)
+    // check response from server
+    // close server
+    // determine if elite/not elite
+  } catch (error) {
+    console.log(`testAnonymity error: ${error}`);
   }
 };
