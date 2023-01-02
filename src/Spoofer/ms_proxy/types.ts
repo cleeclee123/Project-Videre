@@ -11,7 +11,7 @@ export type ProxyParts = {
   port: string;
   // proxyString: string;
   https: boolean;
-  httpbinTest: boolean;
+  httpTest: boolean;
   googleTest: boolean;
 };
 
@@ -23,6 +23,20 @@ export type ProxiesInfo = {
 export type ProtocolPort = {
   protocol: string;
   port: number;
+};
+
+export type ProxyStatus = {
+  hidesIP: boolean;
+  anonymity: string;
+  status: boolean;
+  proxyType: string;
+  country: string;
+  region: string,
+  city: string,
+  zip: string,
+  location: Object,
+  tz: string,
+  isp: string,
 };
 
 export const kHttpPorts: Array<ProtocolPort> = [

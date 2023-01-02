@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import HttpsProxyAgent from "https-proxy-agent";
-import { uas } from "../types.js";
+import { ProxyStatus, uas } from "../types.js";
 
 export const getMyPublicIP = async (): Promise<any | string> => {
   try {
@@ -15,14 +15,14 @@ export const getMyPublicIP = async (): Promise<any | string> => {
 };
 
 /**
- * tests if proxies work (hides your actual public ip adress transparent v. anonymous) by checking current ip address on httpbin
+ * tests if proxies work (hides your actual public ip adress transparent v. anonymous) by checking current ip address on ip-api
  * @param proxy: host, port
  * @returns if proxy works
  */
-export const testHTTPBin = async (
+export const testHTTP = async (
   host: string,
   port: string
-): Promise<boolean | undefined> => {
+): Promise<ProxyStatus | undefined> => {
   /** @todo: build custom implementation of http agent (tunneling), this will go thru proxy express server (configs will be handled in proxy server)*/
   let config = {
     headers: {
@@ -37,34 +37,53 @@ export const testHTTPBin = async (
       port: Number(port),
     }),
   };
-  // can use this also: "http://ip-api.com/json/?fields=8217"
   try {
-    return await fetch(`https://httpbin.org/ip`, config).then(
+    let status = {} as ProxyStatus;
+    return await fetch(`http://ip-api.com/json/`, config).then(
       async (response) => {
         if (response.status === 400) {
-          return false;
+          console.log("400 response");
+          status.status = false;
+          return status;
         }
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          let data: any = await response.json();
-          if (host === String(data["origin"])) {
-            return true;
-          } else {
-            return getMyPublicIP().then((publicip) => {
-              if (String(data["origin"]) !== publicip) {
-                console.log("proxy is anonymous");
-                return true;
-              } else {
-                console.log("proxy is transparent - ignore");
-              }
-            });
-          }
+        if (contentType && contentType.indexOf("application/json") === -1) {
+          console.log("response is not json");
+          status.status = false;
+          return status;
         }
-        return false;
+        const isAnonymousCallBack = async (): Promise<boolean> => {
+          return getMyPublicIP().then((publicip) => {
+            if (String(data["query"]) !== publicip) {
+              return true;
+            }
+            return false;
+          });
+        };
+        let data: any = await response.json();
+        if (host === String(data["query"]) || (await isAnonymousCallBack())) {
+          status.hidesIP = true;
+          status.anonymity = "anonymous";
+          status.status = true;
+          status.country = String(data["country"]);
+          status.region = String(data["regionName"]);
+          status.city = String(data["city"]);
+          status.zip = String(data["zip"]);
+          status.location = {
+            lat: String(data["lat"]),
+            long: String(data["lon"]),
+          };
+          status.tz = String(data["timezone"]);
+          status.isp = String(data["isp"]);
+          return status;
+        }
+        console.log(`http error in response block`);
+        status.status = false;
+        return status;
       }
     );
   } catch (error) {
-    console.log(`httpbin error: ${error}`);
+    console.log(`http error: ${error}`);
   }
 };
 
@@ -121,6 +140,7 @@ export const testAnonymity = async (
       "User-Agent": uas[Math.floor(Math.random() * uas.length)],
       "Accept-Language": "en-US",
       "Accept-Encoding": "gzip, deflate",
+      "Content-Type": "application/json",
       Accept: "text/html",
       Referer: "http://www.google.com/",
     },
@@ -130,11 +150,11 @@ export const testAnonymity = async (
     }),
   };
   try {
-    fetch("http://localhost:8888/reqheaders", config).then(
+    fetch("http://ip-api.com/json/?fields=8217", config).then(
       async (response) => {
-        let json = response.text();
-        json.then((data) => console.log(data));
-      } 
+        let json = await response.json();
+        console.log(json);
+      }
     );
   } catch (error) {
     console.log(`testAnonymity error: ${error}`);

@@ -1,7 +1,7 @@
 import * as net from "net";
 import * as ip from "./ipaddress.js";
 import { Queue } from "../../lib/queue.js";
-import { testHTTPBin, testGoogle } from "./proxy_checks.js";
+import { testHTTP, testGoogle } from "./proxy_checks.js";
 import { ProxyParts, ProxiesInfo, kHttpPorts, uas } from "../types.js";
 
 export class Proxy {
@@ -67,9 +67,9 @@ export class Proxy {
           current.port = port;
           current.protocol = "http";
           // (await this.testHttps(host, port)) ? current.https = true : current.https = false;
-          (await testHTTPBin(host, port))
-            ? (current.httpbinTest = true)
-            : (current.httpbinTest = false);
+          ((await testHTTP(host, port))?.hidesIP)
+            ? (current.httpTest = true)
+            : (current.httpTest = false);
           (await testGoogle(host, port))
             ? (current.googleTest = true)
             : (current.googleTest = false);
