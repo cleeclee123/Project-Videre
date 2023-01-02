@@ -107,12 +107,15 @@ export const testGoogle = async (
 
 /**
  * further proxy checks to see if elite proxy
- * approach: run own http server to see the headers server receives with proxy 
+ * approach: run own http server to see the headers server receives with proxy
  * reference: https://stackoverflow.com/questions/30293385/how-to-check-proxy-headers-to-check-anonymity
  * @param proxy: host, port
- * @returns number 0 (proxy is anonymous not elite) or 1 (proxy is elite) 
+ * @returns number 0 (proxy is anonymous not elite) or 1 (proxy is elite)
  */
-export const testAnonymity = async (host: string, port: string)/* : number */ => {
+export const testAnonymity = async (
+  host: string,
+  port: string
+) /* : number */ => {
   let config = {
     headers: {
       "User-Agent": uas[Math.floor(Math.random() * uas.length)],
@@ -127,13 +130,12 @@ export const testAnonymity = async (host: string, port: string)/* : number */ =>
     }),
   };
   try {
-    // server/api approach? 
-
-    // functional appraoch: 
-    // start server (open socket?)
-    // check response from server
-    // close server
-    // determine if elite/not elite
+    fetch("http://localhost:8888/reqheaders", config).then(
+      async (response) => {
+        let json = response.text();
+        json.then((data) => console.log(data));
+      } 
+    );
   } catch (error) {
     console.log(`testAnonymity error: ${error}`);
   }
