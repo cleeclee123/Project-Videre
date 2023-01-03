@@ -15,6 +15,7 @@ export type ProxyParts = {
   https: boolean;
   httpTest: boolean;
   googleTest: boolean;
+  statusInfo: ProxyStatus;
 };
 
 export type ProxiesInfo = {
@@ -32,13 +33,13 @@ export type ProxyStatus = {
   anonymity: string;
   status: boolean;
   proxyType: string;
-  country: string;
-  region: string;
-  city: string;
-  zip: string;
-  location: Object;
-  tz: string;
-  isp: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  zip?: string;
+  location?: Object;
+  tz?: string;
+  isp?: string;
 };
 
 export const kHttpPorts: Array<ProtocolPort> = [
