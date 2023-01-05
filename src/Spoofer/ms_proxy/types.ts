@@ -32,7 +32,6 @@ export type ProxyStatus = {
   hidesIP: boolean;
   anonymity: string;
   status: boolean;
-  proxyType: string;
   country?: string;
   region?: string;
   city?: string;
