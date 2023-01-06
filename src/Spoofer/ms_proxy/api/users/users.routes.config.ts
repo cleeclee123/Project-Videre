@@ -1,6 +1,6 @@
-import { CommonRoutesConfig } from "../common/common.routes.config";
-import UsersController from "./controllers/users.controller";
-import UsersMiddleware from "./middleware/users.middleware";
+import { CommonRoutesConfig } from "../common/common.routes.config.js";
+import UsersController from "./controllers/users.controller.js";
+import UsersMiddleware from "./middleware/users.middleware.js";
 import express from "express";
 
 export class UsersRoutes extends CommonRoutesConfig {

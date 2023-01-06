@@ -1,5 +1,5 @@
 import express from "express";
-import usersService from "../services/users.service";
+import usersService from "../services/users.service.js";
 import argon2 from "argon2"; // password hashing
 import debug from "debug";
 

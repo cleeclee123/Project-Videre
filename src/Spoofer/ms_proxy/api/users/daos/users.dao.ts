@@ -1,6 +1,6 @@
 import { CreateUserDto } from "../dto/create.user.dto.js";
-import { PatchUserDto } from "../dto/patch.user.dto";
-import { PutUserDto } from "../dto/put.user.dto";
+import { PatchUserDto } from "../dto/patch.user.dto.js";
+import { PutUserDto } from "../dto/put.user.dto.js";
 import shortid from "shortid";
 import debug from "debug";
 
