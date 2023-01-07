@@ -2,7 +2,7 @@ import * as net from "net";
 import * as ip from "./ipaddress.js";
 import { Queue } from "../../lib/queue.js";
 import { testHTTP, testGoogle } from "./proxy_checks.js";
-import { ProxyParts, ProxiesInfo, kHttpPorts, uas } from "../types.js";
+import { ProxyParts, ProxiesInfo, kHttpPorts, ProxyStatus } from "../types.js";
 
 export class Proxy {
   private capacity_: number;
@@ -19,7 +19,8 @@ export class Proxy {
 
   /**
    * attempts to connect to socket with passed in ip address on passed in port
-   * resolves promise to true right away if port is open, to false if port is closed
+   * resolves promise to true right away if port is open and GET method is allowed, to false if port is closed or GET method fails
+   *
    * @param host, passed in ip address (string)
    * @param port, passed in port number (string but node net wants it a number)
    */
@@ -29,21 +30,28 @@ export class Proxy {
     t: number
   ): Promise<boolean> => {
     return new Promise((resolve, reject) => {
+      let client = new net.Socket();
+
       // opens socket connection
-      let connection: net.Socket = net.connect(Number(port), host, () => {
-        connection.destroy();
+      client.connect(Number(port), host, () => {
+        client.write(
+          `'HTTP/1.0 200 OK\r\n' + 
+          '\r\n'`
+        );
+        client.destroy();
         resolve(true);
       });
 
       // handle timeout error
       setTimeout(() => {
-        connection.destroy();
+        client.destroy();
         resolve(false);
       }, t);
 
       // handle socket connection error
-      connection.on("error", (error) => {
+      client.on("error", (error) => {
         console.log(`checkPort error: ${error} port: ${port}`);
+        client.destroy();
         resolve(false);
       });
     });
@@ -66,8 +74,10 @@ export class Proxy {
           current.host = host;
           current.port = port;
           current.protocol = "http";
+          current.statusInfo =
+            (await testHTTP(host, port)) || ({} as ProxyStatus);
           // (await this.testHttps(host, port)) ? current.https = true : current.https = false;
-          ((await testHTTP(host, port))?.hidesIP)
+          current.statusInfo.hidesIP
             ? (current.httpTest = true)
             : (current.httpTest = false);
           (await testGoogle(host, port))

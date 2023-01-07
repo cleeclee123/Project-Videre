@@ -102,8 +102,29 @@ export const fetchConfig = (host: string, port: string) => {
       "Accept-Encoding": "gzip, deflate",
       Connection: "Keep-Alive",
       "Upgrade-Insecure-Requests": "1",
+      "Cache-Control": "max-age=259200",
+      Referer: "http://www.google.com/",
+    },
+    agent: new HttpsProxyAgent.HttpsProxyAgent({
+      host: host,
+      port: Number(port),
+    }),
+  };
+};
+
+// helper funtion to create request header and https prpxy agent for fetch for ngrok
+export const fetchConfigNgrok = (host: string, port: string) => {
+  return {
+    headers: {
+      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
+      Accept: "text/html",
+      "Accept-Language": "en-US",
+      "Accept-Encoding": "gzip, deflate",
+      Connection: "Keep-Alive",
+      "Upgrade-Insecure-Requests": "1",
       "Cache-Control": "max-age=0",
       Referer: "http://www.google.com/",
+      "ngrok-skip-browser-warning": "skip plz"
     },
     agent: new HttpsProxyAgent.HttpsProxyAgent({
       host: host,
