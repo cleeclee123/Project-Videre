@@ -7,7 +7,7 @@ dotenv.config();
 /**
  * tests if proxies work by checking connection through google
  * @param proxy: host, port
- * @returns if proxy works
+ * @returns if proxy works with google
  */
 export const testGoogle = async (
   host: string,
@@ -25,6 +25,13 @@ export const testGoogle = async (
   }
 };
 
+/**
+ * to check if proxy allows https, send a http connect request to proxy through curl
+ * @param host 
+ * @param port 
+ * @param timeout 
+ * @returns boolean if https is allowed by proxy
+ */
 export const httpsCheck = async (
   host: string,
   port: string,
@@ -78,7 +85,7 @@ export const httpsCheck = async (
  *  -
  * @param host
  * @param port
- * @returns
+ * @returns type ProxyCheck, information about the health of the proxy
  */
 export const proxyChecks = (host: string, port: string, timeout: number): Promise<ProxyCheck> => {
   const curlProxyStatus: ChildProcessWithoutNullStreams = spawn("curl", [
