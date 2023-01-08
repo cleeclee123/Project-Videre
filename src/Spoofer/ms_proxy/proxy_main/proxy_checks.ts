@@ -1,78 +1,8 @@
 import fetch from "node-fetch";
-import HttpsProxyAgent from "https-proxy-agent";
-import { ProxyStatus, uas, fetchConfig } from "../types.js";
-
-export const getMyPublicIP = async (): Promise<any | string> => {
-  try {
-    return await fetch(`https://httpbin.org/ip`).then(async (res) => {
-      let data: any = await res.json();
-      return data["origin"];
-    });
-  } catch (error) {
-    console.log(`public ip getter error ${error}`);
-  }
-  return "";
-};
-
-/**
- * tests if proxies work (hides your actual public ip adress transparent v. anonymous) by checking current ip address on ip-api
- * @param proxy: host, port
- * @returns if proxy works
- */
-export const testHTTP = async (
-  host: string,
-  port: string
-): Promise<ProxyStatus | undefined> => {
-  /** @todo: build custom implementation of http agent (tunneling), this will go thru proxy express server (configs will be handled in proxy server)*/
-  try {
-    let status = {} as ProxyStatus;
-    return await fetch(`http://ip-api.com/json/`, fetchConfig(host, port)).then(
-      async (response) => {
-        if (response.status === 400) {
-          console.log("400 response");
-          status.status = false;
-          return status;
-        }
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") === -1) {
-          console.log("response is not json");
-          status.status = false;
-          return status;
-        }
-        const isAnonymousCallBack = async (): Promise<boolean> => {
-          return getMyPublicIP().then((publicip) => {
-            if (String(data["query"]) !== publicip) {
-              return true;
-            }
-            return false;
-          });
-        };
-        let data: any = await response.json();
-        if (host === String(data["query"]) || (await isAnonymousCallBack())) {
-          status.hidesIP = true;
-          status.anonymity = "anonymous";
-          status.status = true;
-          status.country = String(data["country"]);
-          status.region = String(data["regionName"]);
-          status.city = String(data["city"]);
-          status.zip = String(data["zip"]);
-          status.location = {
-            lat: String(data["lat"]),
-            long: String(data["lon"]),
-          };
-          status.tz = String(data["timezone"]);
-          status.isp = String(data["isp"]);
-          return status;
-        }
-        console.log(`http error in response block`);
-        status.status = false;
-        return status;
-      }
-    );
-  } catch (error) {
-    console.log(`http error: ${error}`);
-  }
-};
+import { headersValuesToFlag, fetchConfig, ProxyCheck } from "../types.js";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 /**
  * tests if proxies work by checking connection through google
@@ -82,54 +12,150 @@ export const testHTTP = async (
 export const testGoogle = async (
   host: string,
   port: string
-): Promise<boolean | undefined> => {
+): Promise<boolean> => {
   try {
-    return await fetch(`https://www.google.com/`, fetchConfig(host, port)).then(
-      async (response) => {
-        if (response.status === 200) {
-          return true;
-        }
-        return false;
-      }
-    );
+    let res = await fetch(`https://www.google.com/`, fetchConfig(host, port));
+    if (res.status === 200) {
+      return true;
+    }
+    return false;
   } catch (error) {
     console.log(`google error: ${error}`);
+    return false;
   }
 };
 
-/**
- * further proxy checks to see if elite proxy
- * approach: run own http server to see the headers server receives with proxy
- * reference: https://stackoverflow.com/questions/30293385/how-to-check-proxy-headers-to-check-anonymity
- * @param proxy: host, port
- * @returns number 0 (proxy is anonymous not elite) or 1 (proxy is elite)
- */
-export const testAnonymity = async (
+export const httpsCheck = async (
   host: string,
-  port: string
-) /* : number */ => {
-  let config = {
-    headers: {
-      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
-      "Accept-Language": "en-US",
-      "Accept-Encoding": "gzip, deflate",
-      "Content-Type": "application/json",
-      Accept: "text/html",
-      Referer: "http://www.google.com/",
-    },
-    agent: new HttpsProxyAgent.HttpsProxyAgent({
-      host: host,
-      port: Number(port),
-    }),
-  };
-  try {
-    fetch("http://ip-api.com/json/?fields=8217", config).then(
-      async (response) => {
-        let json = await response.json();
-        console.log(json);
+  port: string,
+  timeout: number
+): Promise<boolean> => {
+  const curlTunnelStatus: ChildProcessWithoutNullStreams = spawn("curl", [
+    "--max-time",
+    `${timeout}`,
+    "-s",
+    "-o",
+    "/dev/null",
+    "-w",
+    "%{http_code}",
+    "-p",
+    "-x",
+    `http://${host}:${port}`,
+    `http://myproxyjudgeclee.software/${process.env.PJ_KEY}`,
+  ]);
+
+  let httpsAllowed = false;
+  return new Promise((resolve, reject) => {
+    curlTunnelStatus.stdout.setEncoding("utf8");
+    curlTunnelStatus.stdout.on("data", async (data) => {
+      console.log("status code", data);
+      // No valid HTTP response code check over proxy
+      if (String(data) === "000") {
+        curlTunnelStatus.kill("SIGKILL");
+        httpsAllowed = false;
+      } else if (Number(data) !== 200) {
+        console.log(`status error ${data}`);
+        curlTunnelStatus.kill("SIGKILL");
+        httpsAllowed = false;
+      } else {
+        httpsAllowed = true;
       }
-    );
-  } catch (error) {
-    console.log(`testAnonymity error: ${error}`);
-  }
+      resolve(httpsAllowed);
+    });
+  });
+};
+
+/**
+ * look at headers to find the anonymity of passed in proxy
+ * header values to flag:
+ *  - HTTP_X_FORWARD_FOR
+ *  - HTTP_VIA
+ *  - HTTP_AUTH
+ *  - HTTP_FROM
+ *  - REMOTE_ADDR
+ *  - PROXY_CONNECTION
+ *  - Proxy-Authorization
+ *  -
+ * @param host
+ * @param port
+ * @returns
+ */
+export const proxyChecks = (host: string, port: string, timeout: number): Promise<ProxyCheck> => {
+  const curlProxyStatus: ChildProcessWithoutNullStreams = spawn("curl", [
+    "--max-time",
+    `${timeout}`,
+    "-s",
+    "-o",
+    "/dev/null",
+    "-w",
+    "%{http_code}",
+    "--proxy",
+    `http://${host}:${port}`,
+    `http://myproxyjudgeclee.software/${process.env.PJ_KEY}`,
+  ]);
+  const curlProxy: ChildProcessWithoutNullStreams = spawn("curl", [
+    "--max-time",
+    `${timeout}`,
+    "--proxy",
+    `http://${host}:${port}`,
+    `http://myproxyjudgeclee.software/${process.env.PJ_KEY}`,
+    "-i",
+  ]);
+  let pCheck = {} as ProxyCheck;
+  return new Promise((resolve, reject) => {
+    curlProxyStatus.stdout.on("data", async (data) => {
+      if (Number(data) !== 200 && String(data) !== "000") {
+        console.log(`status error ${data}`);
+        curlProxy.kill("SIGKILL");
+        curlProxyStatus.kill("SIGKILL");
+        resolve(pCheck);
+      }
+    });
+    // stream standard output
+    let response = "";
+    let header = {} as any;
+    curlProxy.stdout.on("data", async (data) => {
+      response += data;
+    });
+
+    // handle error
+    curlProxy.on("error", (error) => {
+      curlProxy.kill("SIGKILL");
+      console.log(`curl proxy error: ${error}`);
+    });
+
+    // handle spawn exit
+    curlProxy.on("exit", async (code) => {
+      if (code === 28) {
+        console.log("timeout error");
+        resolve(pCheck);
+      }
+      let headerParts = response
+        .substring(0, response.indexOf("{"))
+        .split("\r\n");
+      headerParts.forEach((data) => {
+        if (data !== undefined) {
+          if (!data.includes(":")) {
+            header["status"] += data + " ";
+          } else {
+            let parts = data.split(":");
+            header[parts[0]] = parts[1];
+          }
+        }
+      });
+      pCheck.response = JSON.parse(response.slice(response.indexOf("{")));
+      pCheck.isElite = !headersValuesToFlag.some((v) => response.includes(v));
+      let causeTemp: string[] = [];
+      headersValuesToFlag.forEach((ss) => {
+        if (response.includes(ss)) {
+          causeTemp.push(ss);
+        }
+      });
+      pCheck.cause = causeTemp;
+      pCheck.headers = header;
+      pCheck.https = await httpsCheck(host, port, timeout);
+      pCheck.googleTest = await testGoogle(host, port);
+      resolve(pCheck);
+    });
+  });
 };

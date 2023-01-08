@@ -11,11 +11,7 @@ export type ProxyParts = {
   protocol: string;
   host: string;
   port: string;
-  // proxyString: string;
-  https: boolean;
-  httpTest: boolean;
-  googleTest: boolean;
-  statusInfo: ProxyStatus;
+  proxyCheck: ProxyCheck;
 };
 
 export type ProxiesInfo = {
@@ -39,6 +35,15 @@ export type ProxyStatus = {
   location?: Object;
   tz?: string;
   isp?: string;
+};
+
+export type ProxyCheck = {
+  https: boolean;
+  isElite: boolean;
+  response: any;
+  headers: any;
+  cause: string[];
+  googleTest: boolean;
 };
 
 export const kHttpPorts: Array<ProtocolPort> = [
@@ -112,23 +117,14 @@ export const fetchConfig = (host: string, port: string) => {
   };
 };
 
-// helper funtion to create request header and https prpxy agent for fetch for ngrok
-export const fetchConfigNgrok = (host: string, port: string) => {
-  return {
-    headers: {
-      "User-Agent": uas[Math.floor(Math.random() * uas.length)],
-      Accept: "text/html",
-      "Accept-Language": "en-US",
-      "Accept-Encoding": "gzip, deflate",
-      Connection: "Keep-Alive",
-      "Upgrade-Insecure-Requests": "1",
-      "Cache-Control": "max-age=0",
-      Referer: "http://www.google.com/",
-      "ngrok-skip-browser-warning": "skip plz"
-    },
-    agent: new HttpsProxyAgent.HttpsProxyAgent({
-      host: host,
-      port: Number(port),
-    }),
-  };
-};
+export const headersValuesToFlag = [
+  "X_FORWARDED_FOR",
+  "VIA",
+  "AUTHENTICATION",
+  "Proxy-Connection",
+  "PROXY_CONNECTION",
+  "FROM",
+  "REMOTE_ADDR",
+  "Proxy-Authorization",
+  'PROXY_AUTHORIZATION'
+];

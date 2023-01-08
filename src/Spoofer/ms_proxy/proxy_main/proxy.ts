@@ -1,8 +1,8 @@
 import * as net from "net";
 import * as ip from "./ipaddress.js";
 import { Queue } from "../../lib/queue.js";
-import { testHTTP, testGoogle } from "./proxy_checks.js";
-import { ProxyParts, ProxiesInfo, kHttpPorts, ProxyStatus } from "../types.js";
+import { proxyChecks, testGoogle } from "./proxy_checks.js";
+import { ProxyParts, ProxiesInfo, kHttpPorts, ProxyCheck } from "../types.js";
 
 export class Proxy {
   private capacity_: number;
@@ -74,15 +74,7 @@ export class Proxy {
           current.host = host;
           current.port = port;
           current.protocol = "http";
-          current.statusInfo =
-            (await testHTTP(host, port)) || ({} as ProxyStatus);
-          // (await this.testHttps(host, port)) ? current.https = true : current.https = false;
-          current.statusInfo.hidesIP
-            ? (current.httpTest = true)
-            : (current.httpTest = false);
-          (await testGoogle(host, port))
-            ? (current.googleTest = true)
-            : (current.googleTest = false);
+          current.proxyCheck = (await proxyChecks(host, port, 10)) || ({} as ProxyCheck);
         }
         resolve(current);
       });
