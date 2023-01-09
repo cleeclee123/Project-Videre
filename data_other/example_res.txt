@@ -1,0 +1,126 @@
+------------- example of base response: ------------------
+
+C:\Users\chris>curl -i http://azenv.net/
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 04 Jan 2023 01:02:14 GMT
+Content-Type: text/html; charset=UTF-8
+Transfer-Encoding: chunked
+Connection: close
+Cache-Control: no-cache, no-store, must-revalidate
+Pragma: no-cache
+Expires: 0
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>AZ Environment variables 1.04</title>
+<meta name="keywords" content="proxyjudge, proxy judge, azenv proxy judge, azenv.php" />
+</head>
+<body>
+<h1>PHP Proxy Judge</h1>
+<pre>
+HTTP_ACCEPT = */*
+HTTP_USER_AGENT = curl/7.83.1
+HTTP_HOST = azenv.net
+REMOTE_USER =
+REMOTE_PORT = 1163
+REMOTE_ADDR = 73.75.53.122
+REQUEST_SCHEME = http
+REQUEST_URI = /
+REQUEST_METHOD = GET
+REQUEST_TIME_FLOAT = 1672794134.4044
+REQUEST_TIME = 1672794134
+</pre>
+</body>
+</html>
+
+
+------------- example of response using elite proxy: ------------------
+
+C:\Users\chris>curl --proxy "http://169.57.1.85:8123" -i http://azenv.net/
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 04 Jan 2023 00:28:45 GMT
+Content-Type: text/html; charset=UTF-8
+Cache-Control: no-cache, no-store, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Cache: MISS from mail.blog2life.net
+X-Cache-Lookup: MISS from mail.blog2life.net:8123
+Transfer-Encoding: chunked
+Connection: keep-alive
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>AZ Environment variables 1.04</title>
+<meta name="keywords" content="proxyjudge, proxy judge, azenv proxy judge, azenv.php" />
+</head>
+<body>
+<h1>PHP Proxy Judge</h1>
+<pre>
+HTTP_CONNECTION = keep-alive
+HTTP_CACHE_CONTROL = max-age=259200
+HTTP_HOST = azenv.net
+HTTP_ACCEPT = */*
+HTTP_USER_AGENT = curl/7.83.1
+REMOTE_USER =
+REMOTE_PORT = 53332
+REMOTE_ADDR = 169.57.1.85
+REQUEST_SCHEME = http
+REQUEST_URI = /
+REQUEST_METHOD = GET
+REQUEST_TIME_FLOAT = 1672792125.185
+REQUEST_TIME = 1672792125
+</pre>
+</body>
+</html>
+
+
+------------- example of response using anonymous proxy: ------------------
+
+C:\Users\chris>curl --proxy "http://103.223.15.150:3128" -i http://azenv.net/
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 04 Jan 2023 01:04:30 GMT
+Content-Type: text/html; charset=UTF-8
+Cache-Control: no-cache, no-store, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Cache: MISS from celser3-ubuntu
+X-Cache-Lookup: MISS from celser3-ubuntu:3128
+Transfer-Encoding: chunked
+Via: 1.1 celser3-ubuntu (squid/4.10)
+Connection: keep-alive
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>AZ Environment variables 1.04</title>
+<meta name="keywords" content="proxyjudge, proxy judge, azenv proxy judge, azenv.php" />
+</head>
+<body>
+<h1>PHP Proxy Judge</h1>
+<pre>
+HTTP_CONNECTION = keep-alive
+HTTP_CACHE_CONTROL = max-age=259200
+HTTP_X_FORWARDED_FOR = 73.75.53.122
+HTTP_VIA = 1.1 celser3-ubuntu (squid/4.10)
+HTTP_HOST = azenv.net
+HTTP_ACCEPT = */*
+HTTP_USER_AGENT = curl/7.83.1
+REMOTE_USER =
+REMOTE_PORT = 41350
+REMOTE_ADDR = 103.223.15.150
+REQUEST_SCHEME = http
+REQUEST_URI = /
+REQUEST_METHOD = GET
+REQUEST_TIME_FLOAT = 1672794270.3676
+REQUEST_TIME = 1672794270
+</pre>
+</body>
+</html>
